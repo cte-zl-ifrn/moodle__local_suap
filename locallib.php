@@ -1,4 +1,6 @@
 <?php
+namespace suapsync;
+
 /**
  * SUAP Integration
  *
@@ -51,15 +53,25 @@ function dienow($message, $code) {
     die(json_encode(["message"=>$message, "code"=>$code]));
 }
 
- 
-function suap_sync_authenticate() {
-    $sync_up_auth_token = get_config('suapsync', 'sync_up_auth_token');
+function config($name) {
+    return get_config('local_suapsync', $name);
+}
 
-    if (!array_key_exists('Authentication', getallheaders())) {
-        dienow("Bad Request - Authentication not informed", 400);
+class service {
+
+    function authenticate() {
+        $sync_up_auth_token = config('auth_token');
+
+        $headers = getallheaders();
+        if (!array_key_exists('Authentication', $headers)) {
+            dienow("Bad Request - Authentication not informed", 400);
+        }
+
+        if ("Token $sync_up_auth_token" != $headers['Authentication']) {
+            dienow("Unauthorized", 401);
+        }
     }
 
-    if ("Token $sync_up_auth_token" != getallheaders()['Authentication']) {
-        dienow("Unauthorized", 401);
-    }
+
+
 }
