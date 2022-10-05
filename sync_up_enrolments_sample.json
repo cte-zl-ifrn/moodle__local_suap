@@ -1,0 +1,72 @@
+{
+  "campus": {
+    "id": 1,
+    "descricao": "CAMPUS EAD",
+    "sigla": "EAD"
+  },
+  "curso": {
+    "id": 2,
+    "codigo": "000000",
+    "nome": "Aprenda de casa",
+    "descricao": "FIC+ Aprenda de casa"
+  },
+  "turma": {
+    "id": 3,
+    "codigo": "20202.1.000000.1E"
+  },
+  "diario": {
+    "id": 4,
+    "situacao": "Aberto",
+    "descricao": "\u00c9tica e Cidadania",
+    "descricao_historico": "\u00c9tica e Cidadania",
+    "sigla": "FIC.0000"
+  },
+  "polo": {
+    "id": 5,
+    "nome": "Nome do polo"
+  },
+  "componente": {
+    "id": 8,
+    "descricao": "\u00c9tica e Cidadania",
+    "descricao_historico": "\u00c9tica e Cidadania",
+    "sigla": "FIC.0000",
+    "periodo": 1,
+    "tipo": 1,
+    "optativo": false,
+    "qtd_avaliacoes": 1
+  },
+  "professores": [
+    {
+      "id": 9,
+      "nome": "Professor com nome completo",
+      "nome_usual": "Professor foda",
+      "login": "0000000",
+      "email": "nome.sobrenome@ifrn.edu.br",
+      "email_secundario": "nome.sobrenome@professorx.com",
+      "status": "ativo",
+      "foto-url": "",
+      "cpf": "12345678901",
+
+      "tipo": "Principal",
+      "tipo_colaborador": "Técnico-administrativo|Prestador"
+    }
+  ],
+  "alunos": [
+    {
+      "id": 10,
+      "nome": "Aluno com nome completo",
+      "nome_usual": "Aluno massa",
+      "matricula": "202021000000001",
+      "email": "nome.sobrenome@alunoz.com",
+      "email_secundario": "nome.sobrenome@alunoz.com",
+      "situacao": "ativo",
+      "foto-url": "",
+      "cpf": "12345678901",
+
+      "polo": {
+        "id": 5,
+        "nome": "Nome do polo"
+      }
+    }
+  ]
+}
