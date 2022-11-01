@@ -25,10 +25,8 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-/**
- * Custom code to be run on installing the plugin.
- */
-function xmldb_local_suapsync_install() {
+require_once(__DIR__.'/upgradelib.php');
 
-    return true;
+function xmldb_local_suapsync_install() {
+    return local_suapsync_migrate(0);
 }

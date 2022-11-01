@@ -21,18 +21,28 @@
  * @category    upgrade
  * @copyright   2022 Kelson Medeiros <kelsoncm@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @see         https://docs.moodle.org/dev/Data_definition_API
+ * @see         https://docs.moodle.org/dev/XMLDB_creating_new_DDL_functions
+ * @see         https://docs.moodle.org/dev/Upgrade_API
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-/**
- * Helper function used by the upgrade.php file.
- */
-function local_suapsync_helper_function() {
+function local_suapsync_migrate($oldversion) {
     global $DB;
 
-    // Please note: you can only use raw low level database access here.
-    // Avoid Moodle API calls in upgrade steps.
-    //
-    // For more information please read {@link https://docs.moodle.org/dev/Upgrade_API}.
+    $dbman = $DB->get_manager();
+
+    if ($oldversion == 0) {
+        # suapsync_enrolment_to_sync
+        $table = new xmldb_table("suapsync_enrolment_to_sync");
+        $table->add_field("id",             XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE,  null, null, null);
+        $table->add_field("json",           XMLDB_TYPE_TEXT,    'medium',   XMLDB_UNSIGNED, null,          null,            null, null, null);
+        $table->add_field("timecreated",    XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, null,            null, null, null);
+
+        $table->add_key("primary",      XMLDB_KEY_PRIMARY,  ["id"],         null,       null);
+        $status = $dbman->create_table($table);
+
+    }
+    return true;
 }

@@ -27,21 +27,6 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once(__DIR__.'/upgradelib.php');
 
-/**
- * Execute local_suapsync upgrade from the given old version.
- *
- * @param int $oldversion
- * @return bool
- */
 function xmldb_local_suapsync_upgrade($oldversion) {
-    global $DB;
-
-    $dbman = $DB->get_manager();
-
-    // For further information please read {@link https://docs.moodle.org/dev/Upgrade_API}.
-    //
-    // You will also have to create the db/install.xml file by using the XMLDB Editor.
-    // Documentation for the XMLDB Editor can be found at {@link https://docs.moodle.org/dev/XMLDB_editor}.
-
-    return true;
+    return local_suapsync_migrate($oldversion);
 }
