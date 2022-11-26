@@ -25,7 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'local_suapsync';
-$plugin->release = '0.2.003';
-$plugin->version = 20221101004;
+$plugin->release = '0.2.006';
+$plugin->version = 20221125006;
 $plugin->maturity = MATURITY_ALPHA;
 $plugin->requires = 2021051700;
