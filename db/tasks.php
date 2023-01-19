@@ -1,9 +1,9 @@
 <?php
-namespace local_suapsync\task;
+namespace local_suap\task;
 
 class send_enrolments_to_portal extends \core\task\scheduled_task {
     public function get_name() {
-        return get_string('send_enrolments_to_portal', 'local_suapsync');
+        return get_string('send_enrolments_to_portal', 'local_suap');
     }
 
     public function execute() {
@@ -13,7 +13,7 @@ class send_enrolments_to_portal extends \core\task\scheduled_task {
 
 $tasks = [
     [
-        'classname' => 'local_suapsync\task\send_enrolments_to_portal',
+        'classname' => 'local_suap\task\send_enrolments_to_portal',
         'blocking' => 0,
         'minute' => '*/5',
         'hour' => '*',

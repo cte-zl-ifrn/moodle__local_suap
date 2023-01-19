@@ -3,9 +3,9 @@ require_once('../../../config.php');
 require_once('../locallib.php');
 
 
-class get_disciplinas_service extends \suapsync\service {
+class get_disciplinas_service extends \suap\service {
     function do_call() {
-        return \suapsync\get_disciplinas(\suapsync\aget($_GET, 'student', false), \suapsync\aget($_GET, 'username', false));
+        return \suap\get_disciplinas(\suap\aget($_GET, 'student', false), \suap\aget($_GET, 'username', false));
     }
 
 }

@@ -1,5 +1,5 @@
 <?php
-namespace suapsync;
+namespace local_suap;
 
 require_once('../../config.php');
 // require_once('../../lib/coursecatlib.php');
