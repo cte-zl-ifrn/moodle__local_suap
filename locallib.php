@@ -184,6 +184,10 @@ class service {
     function authenticate() {
         $sync_up_auth_token = config('auth_token');
 
+        if ("changeme" == $sync_up_auth_token) {
+            dienow("Too Early", 425);
+        }
+
         $headers = getallheaders();
         if (!array_key_exists('Authentication', $headers)) {
             dienow("Bad Request - Authentication not informed", 400);
