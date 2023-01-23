@@ -25,7 +25,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$string['pluginname'] = 'Sync with SUAP';
+$string['pluginname'] = 'SUAP';
 
 
 # Auth token
