@@ -1,17 +1,14 @@
 <?php
 namespace local_suap\event;
 
-$observers = [
-    [
-        'eventname'   => '\core\event\user_enrolment_created',
-        'callback'    => 'local_suap_observer::user_enrolment_created',
-    ],
-    [
-        'eventname'   => '\core\event\user_enrolment_deleted',
-        'callback'    => 'local_suap_observer::user_enrolment_deleted',
-    ],
-    [
-        'eventname'   => '\core\event\user_enrolment_updated',
-        'callback'    => 'local_suap_observer::user_enrolment_updated',
-    ]
-];
+defined('MOODLE_INTERNAL') || die();
+require_once($CFG->dirroot . '/local/suap/db/upgrade.php');
+require_once(__DIR__.'/upgradelib.php');
+
+/**
+ * Custom code to be run on installing the plugin.
+ */
+function xmldb_auth_suap_install() {
+    suap_bulk_course_custom_field();
+    suap_bulk_user_custom_field();
+}
