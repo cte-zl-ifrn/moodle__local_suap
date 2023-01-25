@@ -1,6 +1,4 @@
 <?php
-namespace local_suap;
-
 /**
  * SUAP Integration
  *
@@ -13,6 +11,18 @@ namespace local_suap;
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace suap;
+
+require_once("$CFG->dirroot/course/externallib.php");
+require_once("$CFG->dirroot/enrol/externallib.php");
+
+define("REGEX_CODIGO_DIARIO", '/^(\d\d\d\d\d)\.(\d*)\.(\d*)\.(.*)\.(.*\..*)$/');
+define("REGEX_CODIGO_DIARIO_ELEMENTS_COUNT", 6);
+define("REGEX_CODIGO_DIARIO_SEMESTRE", 1);
+define("REGEX_CODIGO_DIARIO_PERIODO", 2);
+define("REGEX_CODIGO_DIARIO_CURSO", 3);
+define("REGEX_CODIGO_DIARIO_TURMA", 4);
+define("REGEX_CODIGO_DIARIO_COMPONENTE", 5);
 
 function get_last_sort_order($tablename) {
     global $DB;
@@ -47,7 +57,6 @@ function create_or_update($tablename, $keys, $inserts, $updates=[], $insert_only
     return $record;
 }
 
-
 function dienow($message, $code) {
     http_response_code($code);
     die(json_encode(["message"=>$message, "code"=>$code]));
@@ -73,7 +82,7 @@ function get_recordset_as_json($sql, $params) {
     return $result . "]";
 }
 
-function ger_recordset_as_array($sql, $params) {
+function get_recordset_as_array($sql, $params) {
     global $DB;
 
     $result = [];
@@ -83,98 +92,137 @@ function ger_recordset_as_array($sql, $params) {
     return $result;
 }
 
-function get_disciplinas($student, $username) {
+function get_cursos($all_diarios) {
     global $DB;
-    $archetype = $student ? "r.archetype='student'" : "r.archetype<>'student'";
-    $sql = "
-    SELECT      cfd.value id, c.fullname label, COUNT(1) count
-    FROM        {role_assignments} ra
-                    INNER JOIN {role} r ON (ra.roleid = r.id and $archetype)
-                    INNER JOIN {context} ctx ON (ra.contextid=ctx.id AND ctx.contextlevel=50)
-                        INNER JOIN {course} c ON (ctx.instanceid=c.id)
-                            INNER JOIN {customfield_data} cfd ON (c.id=cfd.instanceid)
-                                INNER JOIN {customfield_field} cff ON (cfd.fieldid=cff.id AND cff.shortname='codigo_disciplina_suap')
-                    INNER JOIN {user} u ON (ra.userid=u.id)
-    WHERE       u.username = ?
-    GROUP BY    cfd.value, c.fullname
-    ";
-    return ger_recordset_as_array($sql, [$username]);
+    $result = [];
+    foreach ($all_diarios as $course) {
+        preg_match(REGEX_CODIGO_DIARIO, $course->shortname, $matches);
+        if (count($matches) == REGEX_CODIGO_DIARIO_ELEMENTS_COUNT) {
+            $curso = $matches[REGEX_CODIGO_DIARIO_COMPONENTE];
+            $result[$curso] = ['id' => $curso, 'label' => $curso];
+        }
+    }
+    return array_values($result);
 }
 
-function get_situacoes($student, $username) {
-    return [
-        ["id" => "all", "label" => "Sem filtro"],
-        ["id" => "inprogress", "label" => "Em andamento"],
-        ["id" => "future", "label" => "Não iniciados"],
-        ["id" => "past", "label" => "Encerrados"],
-        ["id" => "favourites", "label" => "Meus favoritos"],
-        ["id" => "hidden", "label" => "Ocultados"],
-    ];
-}
-
-function get_semestres($student, $username) {
+function get_disciplinas($all_diarios) {
     global $DB;
-    $archetype = $student ? "r.archetype='student'" : "r.archetype<>'student'";
-    $sql = "
-    SELECT      cfd.value id, " . $DB->sql_concat($DB->sql_substr("cfd.value", 1, 4), "'.'", $DB->sql_substr("cfd.value", 5, 1)) . " label, COUNT(1) count
-    FROM        {role_assignments} ra
-                    INNER JOIN {role} r ON (ra.roleid = r.id and $archetype)
-                    INNER JOIN {context} ctx ON (ra.contextid=ctx.id AND ctx.contextlevel=50)
-                        INNER JOIN {course} c ON (ctx.instanceid=c.id)
-                            INNER JOIN {customfield_data} cfd ON (c.id=cfd.instanceid)
-                                INNER JOIN {customfield_field} cff ON (cfd.fieldid=cff.id AND cff.shortname='ano_mes_suap')
-                    INNER JOIN {user} u ON (ra.userid=u.id)
-    WHERE       u.username = ?
-    GROUP BY    cfd.value
-    ";
-    return ger_recordset_as_array($sql, [$username]);
+    $result = [];
+    foreach ($all_diarios as $course) {
+        preg_match(REGEX_CODIGO_DIARIO, $course->shortname, $matches);
+        if (count($matches) == REGEX_CODIGO_DIARIO_ELEMENTS_COUNT) {
+            $disciplina = $matches[REGEX_CODIGO_DIARIO_COMPONENTE];
+            $result[$disciplina] = ['id' => $disciplina, 'label' => "$course->fullname [$disciplina]"];
+        }
+    }
+    return array_values($result);
 }
 
-function get_diarios($student, $username, $disciplina, $situacao, $semestre, $q) {
-    global $DB, $CFG;
-    
-    $params = [$username];
-    $archetype = $student ? "r.archetype='student'" : "r.archetype<>'student'";
-    $where = 'WHERE u.username = ?';
+function get_semestres($all_diarios) {
+    global $DB;
 
-    if ($disciplina) {
-        $where .= "\n  AND EXISTS (SELECT 1 FROM {customfield_data} cfd INNER JOIN {customfield_field} cff ON (cfd.fieldid=cff.id) WHERE c.id=cfd.instanceid AND cff.shortname='codigo_disciplina_suap' AND cfd.value = ?)";
-        $params[] = $disciplina;
+    $result = [];
+    foreach ($all_diarios as $course) {
+        preg_match(REGEX_CODIGO_DIARIO, $course->shortname, $matches);
+        if (count($matches) == REGEX_CODIGO_DIARIO_ELEMENTS_COUNT) {   
+            $semestre = $matches[REGEX_CODIGO_DIARIO_SEMESTRE];
+            $result[$semestre] = ['id' => $semestre, 'label' => substr($semestre, 0, -1) . '.' . substr($semestre, 4, 1)];
+        }
     }
+    return array_values($result);
+}
 
-    // if ($situacao) {
-    //     $where .= "\n  AND cfd.value = ?";
-    //     $params[] = $disciplina;
-    // }
+function get_all_diarios($username) {
+    return ger_recordset_as_array("
+            SELECT      c.shortname id,
+                        c.fullname label
+            FROM        {role_assignments} ra
+                            INNER JOIN {user} u ON (ra.userid=u.id)
+                            INNER JOIN {role} r ON (ra.roleid = r.id)
+                            INNER JOIN {context} ctx ON (ra.contextid=ctx.id AND ctx.contextlevel=50)
+                                INNER JOIN {course} c ON (ctx.instanceid=c.id)
+            WHERE u.username = ?
+            ORDER BY 2 ASC
+        ",
+        [$username]);
+}
 
-    if ($semestre) {
-        $where .= "\n  AND EXISTS (SELECT 1 FROM {customfield_data} cfd INNER JOIN {customfield_field} cff ON (cfd.fieldid=cff.id) WHERE c.id=cfd.instanceid AND cff.shortname='ano_mes_suap' AND cfd.value = ?)";
-        $params[] = $semestre;
-    }
+function get_diarios($username, $semestre, $situacao, $ordenacao, $disciplina, $curso, $arquetipo, $q, $page, $page_size) {
+    global $DB, $CFG, $USER;
 
-    if ($q) {
-        $where .= "\n  AND c.fullname ILIKE ?";
-        $params[] = "%$q%";
-    }
-    
+    // $and_where = '';
+    // $params = [];
+
+    // // if ($semestre) {
+    // //     $where .= "\n  AND (
+    // //             EXISTS (SELECT 1 FROM {customfield_data} cfd INNER JOIN {customfield_field} cff ON (cfd.fieldid=cff.id) WHERE c.id=cfd.instanceid AND cff.shortname='ano_mes_suap' AND cfd.value = ?)
+    // //             OR c.shortname LIKE ?
+    // //     )";
+    // //     $params[] = $semestre;
+    // //     $params[] = "$disciplina.%";
+    // // }
+
+    // // // if ($situacao) {
+    // // //     $where .= "\n  AND (
+    // // //         EXISTS (SELECT 1 FROM {customfield_data} cfd INNER JOIN {customfield_field} cff ON (cfd.fieldid=cff.id) WHERE c.id=cfd.instanceid AND cff.shortname='codigo_disciplina_suap' AND cfd.value = ?)
+    // // //         OR c.shortname LIKE ?
+    // // //     )";
+    // // //     $params[] = $situacao;
+    // // // }
+
+    // // if ($disciplina) {
+    // //     $where .= "\n  AND (
+    // //         EXISTS (SELECT 1 FROM {customfield_data} cfd INNER JOIN {customfield_field} cff ON (cfd.fieldid=cff.id) WHERE c.id=cfd.instanceid AND cff.shortname='codigo_disciplina_suap' AND cfd.value = ?)
+    // //         OR c.shortname LIKE ?
+    // //     )";
+    // //     $params[] = $disciplina;
+    // //     $params[] = "%.$disciplina";
+    // // }
+
+    // // if ($curso) {
+    // //     $where .= "\n  AND (
+    // //         EXISTS (SELECT 1 FROM {customfield_data} cfd INNER JOIN {customfield_field} cff ON (cfd.fieldid=cff.id) WHERE c.id=cfd.instanceid AND cff.shortname='codigo_disciplina_suap' AND cfd.value = ?)
+    // //         OR c.shortname LIKE ?
+    // //     )";
+    // //     $params[] = $curso;
+    // //     $params[] = "%.$curso.%";
+    // // }
+
+    // // if ($q) {
+    // //     $where .= "\n  AND c.fullname ILIKE ?";
+    // //     $params[] = "%$q%";
+    // // }
+
+    // $ordering = in_array($ordenacao, ['fullname', 'shortname', 'ul.timeaccess desc']) ? "ORDER BY $ordenacao" : null;
+
     $sql = "
-    SELECT      c.shortname codigo, 
-                c.fullname titulo,
-                0 progresso,
-                'https://ead.ifrn.edu.br/portal/wp-content/uploads/2022/10/ifrn-logo.png' thumbnail,
-                " . $DB->sql_concat("'$CFG->wwwroot/course/view.php'", "chr(63)", "'id='", "c.id") . " url
+    SELECT      c.id, 
+                c.shortname shortname,
+                c.fullname fullname
     FROM        {role_assignments} ra
-                    INNER JOIN {role} r ON (ra.roleid = r.id AND $archetype)
+                    INNER JOIN {user} u ON (ra.userid=u.id)
+                    INNER JOIN {role} r ON (ra.roleid = r.id)
                     INNER JOIN {context} ctx ON (ra.contextid=ctx.id AND ctx.contextlevel=50)
                         INNER JOIN {course} c ON (ctx.instanceid=c.id)
-                    INNER JOIN {user} u ON (ra.userid=u.id)
-    $where
+    WHERE u.username = ?
     ";
+
+        $USER = $DB->get_record('user', ['username' => $username]);
+    // $USER = $DB->get_record('user', ['username' => '1723011']);
+    $all_diarios = get_recordset_as_array($sql, [$USER->username]);
+    // $all_courses = \core_enrol_external::get_users_courses($USER->id);
+    // $all_diarios = \core_course_external::get_enrolled_courses_by_timeline_classification('all', 0, 0, $ordenacao)['courses'];
+    $filtered_diarios = \core_course_external::get_enrolled_courses_by_timeline_classification($situacao, 0, 0, $ordenacao)['courses'];
+    foreach ($filtered_diarios as $diario) {
+        $diario->summary = null;
+        $diario->summaryformat = null;
+    }
+
     return [
-        "disciplinas" => get_disciplinas($student, $username),
-        "situacoes" => get_situacoes($student, $username),
-        "semestres" => get_semestres($student, $username),
-        "diarios" => ger_recordset_as_array($sql, $params),
+        "semestres" => get_semestres($all_diarios),
+        "disciplinas" => get_disciplinas($all_diarios),
+        "cursos" => get_cursos($all_diarios, 'ASC'),
+        "diarios" => $filtered_diarios,
         "informativos" => [],
     ];
 }
@@ -183,10 +231,6 @@ class service {
 
     function authenticate() {
         $sync_up_auth_token = config('auth_token');
-
-        if ("changeme" == $sync_up_auth_token) {
-            dienow("Too Early", 425);
-        }
 
         $headers = getallheaders();
         if (!array_key_exists('Authentication', $headers)) {

@@ -34,7 +34,7 @@ function local_suap_migrate($oldversion) {
     $dbman = $DB->get_manager();
 
     if ($oldversion == 0) {
-        # local_suap_enrolment_to_sync
+        # suap_enrolment_to_sync
         $table = new xmldb_table("suap_enrolment_to_sync");
         $table->add_field("id",             XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE,  null, null, null);
         $table->add_field("json",           XMLDB_TYPE_TEXT,    'medium',   XMLDB_UNSIGNED, null,          null,            null, null, null);

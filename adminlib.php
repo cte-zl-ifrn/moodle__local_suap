@@ -11,7 +11,7 @@
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-class local_suap_admin_settingspage extends admin_settingpage {
+class suap_admin_settingspage extends admin_settingpage {
 
     public function __construct($admin_mode) {
         $plugin_name = 'local_suap';

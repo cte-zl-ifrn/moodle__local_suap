@@ -17,7 +17,9 @@ class sync_up_enrolments_service extends service {
         if (!array_key_exists('jsonstring', $_POST)) {
             dienow("Atributo \'jsonstring\' é obrigatório.", 550);
         }
+
         $json = json_decode($_POST['jsonstring']);
+
         if (empty($json)) {
             dienow("Atributo 'jsonstring' sem JSON ou com JSON inválido.", 551);
         }
@@ -33,7 +35,7 @@ class sync_up_enrolments_service extends service {
     
         try { 
             $this->authenticate();
-
+            
             $json = $this->validate_json();
     
             $diario_id = $this->sync_struct($json, false);
@@ -323,7 +325,10 @@ class sync_up_enrolments_service extends service {
         }
         $turma = $json->turma->codigo;
         $oferta = substr($json->turma->codigo, 0, 5);
-        $groups = $room ? [$polo->nome, $turma, $oferta, "{$polo->nome} de $oferta", "$turma de $oferta", $json->componente->descricao] : [$polo->nome];
+        //$polo_array = gettype($polo) == 'integer' ? [] : [$polo->nome];
+        $polo_array = [];
+
+        $groups = $room ? array_merge($polo_array, [$turma, $oferta]) : $polo_array;
         foreach ($groups as $groupname) {
             $data = ['courseid' => $courseid, 'name' => $groupname];
             $group = $DB->get_record('groups', $data);
@@ -337,6 +342,5 @@ class sync_up_enrolments_service extends service {
         }
     }
 }
-
 $service = new sync_up_enrolments_service();
 $service->call();

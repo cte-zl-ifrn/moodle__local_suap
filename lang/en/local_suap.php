@@ -25,7 +25,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$string['pluginname'] = 'SUAP';
+$string['pluginname'] = 'SUAP Integration';
 
 
 # Auth token

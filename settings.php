@@ -16,5 +16,5 @@ defined('MOODLE_INTERNAL') || die;
 require_once(__DIR__.'/adminlib.php');
 
 if ($hassiteconfig) {
-    $ADMIN->add('server', new local_suap_admin_settingspage($ADMIN->fulltree));
+    $ADMIN->add('server', new suap_admin_settingspage($ADMIN->fulltree));
 }
