@@ -28,18 +28,18 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot . '/auth/suap/locallib.php');
+require_once($CFG->dirroot . '/local/suap/locallib.php');
 function suap_save_course_custom_field($categoryid, $shortname, $name, $type='text', $configdata='{"required":"0","uniquevalues":"0","displaysize":50,"maxlength":250,"ispassword":"0","link":"","locked":"0","visibility":"0"}') {
-    return get_or_create(
+    return \suap\get_or_create(
         'customfield_field', 
         ['shortname'=>$shortname], 
-        ['categoryid' => $categoryid, 'name' => $name, 'type' => $type, 'configdata' => $configdata, 'timecreated'=>time(), 'timemodified'=>time(), 'sortorder'=>get_last_sort_order('customfield_field')]
+        ['categoryid' => $categoryid, 'name' => $name, 'type' => $type, 'configdata' => $configdata, 'timecreated'=>time(), 'timemodified'=>time(), 'sortorder'=>\suap\get_last_sort_order('customfield_field')]
     );
 }
 
 
 function suap_save_user_custom_field($categoryid, $shortname, $name, $datatype='text', $visible=1, $p1=NULL, $p2=NULL) {
-    return get_or_create(
+    return \suap\get_or_create(
         'user_info_field', 
         ['shortname'=>$shortname], 
         ['categoryid'=>$categoryid, 'name'=>$name, 'datatype'=>$datatype, 'visible'=>$visible, 'param1'=>$p1, 'param2'=>$p2]
@@ -49,10 +49,10 @@ function suap_save_user_custom_field($categoryid, $shortname, $name, $datatype='
 
 function suap_bulk_course_custom_field() {
     global $DB;
-    $cid = get_or_create(
+    $cid = \suap\get_or_create(
         'customfield_category', 
         ['name' => 'SUAP', 'component'=>'core_course', 'area'=>'course'], 
-        ['sortorder'=>get_last_sort_order('customfield_category'), 'itemid'=>0, 'contextid'=>1, 'descriptionformat'=>0, 'timecreated'=>time(), 'timemodified'=>time()]
+        ['sortorder'=>\suap\get_last_sort_order('customfield_category'), 'itemid'=>0, 'contextid'=>1, 'descriptionformat'=>0, 'timecreated'=>time(), 'timemodified'=>time()]
     )->id;
     suap_save_course_custom_field($cid, 'campus_id', 'ID do campus');
     suap_save_course_custom_field($cid, 'campus_descricao', 'Descrição do campus');
@@ -86,7 +86,7 @@ function suap_bulk_course_custom_field() {
 function suap_bulk_user_custom_field() {
     global $DB;
 
-    $cid = get_or_create('user_info_category', ['name' => 'SUAP'], ['sortorder'=>get_last_sort_order('user_info_category')])->id;
+    $cid = \suap\get_or_create('user_info_category', ['name' => 'SUAP'], ['sortorder'=>\suap\get_last_sort_order('user_info_category')])->id;
 
     suap_save_user_custom_field($cid, 'email_google_classroom', 'E-mail @escolar (Google Classroom');
     suap_save_user_custom_field($cid, 'email_academico', 'E-mail @academico (Microsoft)');
@@ -108,23 +108,22 @@ function suap_bulk_user_custom_field() {
     suap_save_user_custom_field($cid, 'ingresso_periodo', 'Período de ingresso');
 }
 
->>>>>>> 9c58299febd1b92d6363caa1fd2cd37ee5a50b74
 function local_suap_migrate($oldversion) {
     global $DB;
 
-    $dbman = $DB->get_manager();
+    // $dbman = $DB->get_manager();
 
-    if ($oldversion == 0) {
-        # suap_enrolment_to_sync
-        $table = new xmldb_table("suap_enrolment_to_sync");
-        $table->add_field("id",             XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE,  null, null, null);
-        $table->add_field("json",           XMLDB_TYPE_TEXT,    'medium',   XMLDB_UNSIGNED, null,          null,            null, null, null);
-        $table->add_field("timecreated",    XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, null,            null, null, null);
-        $table->add_field("attempts",        XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, null,            null, null, null);
+    // if ($oldversion == 0) {
+    //     # suap_enrolment_to_sync
+    //     $table = new xmldb_table("suap_enrolment_to_sync");
+    //     $table->add_field("id",             XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE,  null, null, null);
+    //     $table->add_field("json",           XMLDB_TYPE_TEXT,    'medium',   XMLDB_UNSIGNED, null,          null,            null, null, null);
+    //     $table->add_field("timecreated",    XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, null,            null, null, null);
+    //     $table->add_field("attempts",        XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, null,            null, null, null);
 
-        $table->add_key("primary",      XMLDB_KEY_PRIMARY,  ["id"],         null,       null);
-        $status = $dbman->create_table($table);
+    //     $table->add_key("primary",      XMLDB_KEY_PRIMARY,  ["id"],         null,       null);
+    //     $status = $dbman->create_table($table);
 
-    }
+    // }
     return true;
 }

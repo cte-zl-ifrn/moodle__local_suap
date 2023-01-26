@@ -112,7 +112,7 @@ function get_disciplinas($all_diarios) {
     foreach ($all_diarios as $course) {
         preg_match(REGEX_CODIGO_DIARIO, $course->shortname, $matches);
         if (count($matches) == REGEX_CODIGO_DIARIO_ELEMENTS_COUNT) {
-            $disciplina = $matches[REGEX_CODIGO_DIARIO_COMPONENTE];
+            $disciplina = $matches[REGEX_CODIGO_DIARIO_DISCIPLINA];
             $result[$disciplina] = ['id' => $disciplina, 'label' => "$course->fullname [$disciplina]"];
         }
     }
@@ -157,6 +157,7 @@ function get_diarios($username, $semestre, $situacao, $ordenacao, $disciplina, $
     $enrolled_courses = \core_course_external::get_enrolled_courses_by_timeline_classification($situacao, 0, 0, $ordenacao)['courses'];
     $diarios = [];
     $coordenacoes = [];
+    $praticas = [];
     foreach ($enrolled_courses as $diario) {
         unset($diario->summary);
         unset($diario->summaryformat);
@@ -171,7 +172,6 @@ function get_diarios($username, $semestre, $situacao, $ordenacao, $disciplina, $
                 $diarios[] = $diario;
             } else {
                 preg_match(REGEX_CODIGO_DIARIO, $diario->shortname, $matches);
-                $diario->filtro = strpos(strtoupper($diario->shortname), strtoupper($q));
                 if (
                         (count($matches) == REGEX_CODIGO_DIARIO_ELEMENTS_COUNT) &&
                         ( (empty($q)) || (!empty($q) && strpos(strtoupper($diario->shortname . ' ' . $diario->shortname), strtoupper($q)) !== false ) ) &&
