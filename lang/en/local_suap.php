@@ -17,7 +17,7 @@
 /**
  * Plugin strings are defined here.
  *
- * @package     local_suapsync
+ * @package     local_suap
  * @category    string
  * @copyright   2022 Kelson Medeiros <kelsoncm@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -25,7 +25,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$string['pluginname'] = 'Sync with SUAP';
+$string['pluginname'] = 'SUAP Integration';
 
 
 # Auth token

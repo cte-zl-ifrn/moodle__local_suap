@@ -17,7 +17,7 @@
 /**
  * Plugin upgrade helper functions are defined here.
  *
- * @package     local_suapsync
+ * @package     local_suap
  * @category    upgrade
  * @copyright   2022 Kelson Medeiros <kelsoncm@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -28,14 +28,14 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-function local_suapsync_migrate($oldversion) {
+function local_suap_migrate($oldversion) {
     global $DB;
 
     $dbman = $DB->get_manager();
 
     if ($oldversion == 0) {
-        # suapsync_enrolment_to_sync
-        $table = new xmldb_table("suapsync_enrolment_to_sync");
+        # suap_enrolment_to_sync
+        $table = new xmldb_table("suap_enrolment_to_sync");
         $table->add_field("id",             XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE,  null, null, null);
         $table->add_field("json",           XMLDB_TYPE_TEXT,    'medium',   XMLDB_UNSIGNED, null,          null,            null, null, null);
         $table->add_field("timecreated",    XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, null,            null, null, null);

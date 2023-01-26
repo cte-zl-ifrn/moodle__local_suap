@@ -17,7 +17,7 @@
 /**
  * Plugin upgrade steps are defined here.
  *
- * @package     local_suapsync
+ * @package     local_suap
  * @category    upgrade
  * @copyright   2022 Kelson Medeiros <kelsoncm@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -27,6 +27,6 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once(__DIR__.'/upgradelib.php');
 
-function xmldb_local_suapsync_upgrade($oldversion) {
-    return local_suapsync_migrate($oldversion);
+function xmldb_local_suap_upgrade($oldversion) {
+    return local_suap_migrate($oldversion);
 }

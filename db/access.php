@@ -2,7 +2,7 @@
 /**
  * Newblock block caps.
  *
- * @package   block_newblock
+ * @package   loca_suap
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

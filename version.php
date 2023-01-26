@@ -17,15 +17,15 @@
 /**
  * Plugin version and other meta-data are defined here.
  *
- * @package     local_suapsync
+ * @package     local_suap
  * @copyright   2022 Kelson Medeiros <kelsoncm@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component = 'local_suapsync';
-$plugin->release = '0.2.006';
-$plugin->version = 20221125006;
+$plugin->component = 'local_suap';
+$plugin->release = '0.2.007';
+$plugin->version = 20221229007;
 $plugin->maturity = MATURITY_ALPHA;
 $plugin->requires = 2021051700;

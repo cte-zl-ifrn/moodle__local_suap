@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
-/**
+/**\
  * Code to be executed after the plugin's database scheme has been installed is defined here.
  *
- * @package     local_suapsync
+ * @package     local_suap
  * @category    upgrade
  * @copyright   2022 Kelson Medeiros <kelsoncm@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -27,6 +27,6 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once(__DIR__.'/upgradelib.php');
 
-function xmldb_local_suapsync_install() {
-    return local_suapsync_migrate(0);
+function xmldb_local_suap_install() {
+    return local_suap_migrate(0);
 }

@@ -1,1 +1,1 @@
-# moodle__local_suap-sync
+# moodle__local_suap
