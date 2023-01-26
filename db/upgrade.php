@@ -28,5 +28,8 @@ defined('MOODLE_INTERNAL') || die();
 require_once(__DIR__.'/upgradelib.php');
 
 function xmldb_local_suap_upgrade($oldversion) {
+    suap_bulk_course_custom_field();
+    suap_bulk_user_custom_field();
     return local_suap_migrate($oldversion);
 }
+

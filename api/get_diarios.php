@@ -18,4 +18,5 @@ class get_diarios_service extends \suap\service {
         );
     }
 }
+
 (new get_diarios_service())->call();

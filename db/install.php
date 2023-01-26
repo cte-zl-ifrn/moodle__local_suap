@@ -22,11 +22,17 @@
  * @copyright   2022 Kelson Medeiros <kelsoncm@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+namespace local_suap\event;
 
 defined('MOODLE_INTERNAL') || die();
-
+require_once($CFG->dirroot . '/local/suap/db/upgrade.php');
 require_once(__DIR__.'/upgradelib.php');
 
-function xmldb_local_suap_install() {
+/**
+ * Custom code to be run on installing the plugin.
+ */
+function xmldb_auth_suap_install() {
+    suap_bulk_course_custom_field();
+    suap_bulk_user_custom_field();
     return local_suap_migrate(0);
 }

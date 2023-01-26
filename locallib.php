@@ -112,7 +112,7 @@ function get_disciplinas($all_diarios) {
     foreach ($all_diarios as $course) {
         preg_match(REGEX_CODIGO_DIARIO, $course->shortname, $matches);
         if (count($matches) == REGEX_CODIGO_DIARIO_ELEMENTS_COUNT) {
-            $disciplina = $matches[REGEX_CODIGO_DIARIO_DISCIPLINA];
+            $disciplina = $matches[REGEX_CODIGO_DIARIO_COMPONENTE];
             $result[$disciplina] = ['id' => $disciplina, 'label' => "$course->fullname [$disciplina]"];
         }
     }
@@ -192,7 +192,6 @@ function get_diarios($username, $semestre, $situacao, $ordenacao, $disciplina, $
         "diarios" => $diarios,
         "coordenacoes" => $coordenacoes,
         "praticas" => $praticas,
-        "informativos" => [],
     ];
 }
 
