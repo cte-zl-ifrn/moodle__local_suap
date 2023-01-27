@@ -25,7 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'local_suap';
-$plugin->data = 20230127000;
+$plugin->data = 20231801000;
 $plugin->liberacao = 16;
 $plugin->version = $plugin->data + $plugin->liberacao;
 $plugin->release = '0.2.' . $plugin->liberacao;
