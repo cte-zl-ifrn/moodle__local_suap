@@ -2,8 +2,8 @@
 
 ```bash
 git add .
-git commit -m "mensagem desta nova versão"
+git commit -m "release 019 - fix namespace"
 git push
-git tag 0.2.017
+git tag 0.2.018
 git push --tags
 ```
