@@ -11,7 +11,7 @@
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace suap;
+namespace local_suap;
 
 require_once("$CFG->dirroot/course/externallib.php");
 require_once("$CFG->dirroot/enrol/externallib.php");
