@@ -4,6 +4,6 @@
 git add .
 git commit -m "release 019 - fix namespace"
 git push
-git tag 0.2.018
+git tag 0.2.019
 git push --tags
 ```
