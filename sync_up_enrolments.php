@@ -13,6 +13,7 @@ require_once(__DIR__.'/locallib.php');
 
 class sync_up_enrolments_service extends service {
 
+
     function validate_json() {
         if (!array_key_exists('jsonstring', $_POST)) {
             dienow("Atributo \'jsonstring\' é obrigatório.", 550);
@@ -57,6 +58,7 @@ class sync_up_enrolments_service extends service {
         }
     }
 
+
     function sync_struct($json, $room=false) {
         global $CFG;
     
@@ -80,7 +82,7 @@ class sync_up_enrolments_service extends service {
             foreach ($json->alunos as $aluno) {
                 $userid = $this->sync_user($aluno, $issuerid);
                 $this->sync_enrol($context->id, $userid, $aluno_config->enrolid, $aluno_config->roleid);
-                $this->sync_group($courseid, $userid, $aluno->polo, $json, $room);
+                $this->sync_group($courseid, $userid, $aluno->username, $aluno->polo, $room);
             }
     
             $issuerid = $this->sync_suap_issuer();
@@ -95,6 +97,7 @@ class sync_up_enrolments_service extends service {
             }
         }
     }
+
 
     function sync_category_hierarchy($data, $room=false) {
         $top_category_idnumber = config('top_category_idnumber') ?: 'diarios'; 
@@ -318,17 +321,16 @@ class sync_up_enrolments_service extends service {
         );
     }
 
-    function sync_group($courseid, $userid, $polo, $json, $room) {
+
+    function sync_group($courseid, $userid, $username, $polo, $room) {
         global $DB;
         if (empty($polo)) {
             return;
         }
-        $turma = $json->turma->codigo;
-        $oferta = substr($json->turma->codigo, 0, 5);
-        //$polo_array = gettype($polo) == 'integer' ? [] : [$polo->nome];
-        $polo_array = [];
+        $oferta = substr($username, 0, 5);
+        $polo_array = gettype($polo) == 'integer' ? [] : [$polo->nome];
 
-        $groups = $room ? array_merge($polo_array, [$turma, $oferta]) : $polo_array;
+        $groups = array_merge($polo_array, $room ? [$entrada, $oferta] : $polo_array);
         foreach ($groups as $groupname) {
             $data = ['courseid' => $courseid, 'name' => $groupname];
             $group = $DB->get_record('groups', $data);
@@ -341,6 +343,8 @@ class sync_up_enrolments_service extends service {
             }
         }
     }
+
+
 }
 $service = new sync_up_enrolments_service();
 $service->call();
