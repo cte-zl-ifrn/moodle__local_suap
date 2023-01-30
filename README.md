@@ -2,8 +2,8 @@
 
 ```bash
 git add .
-git commit -m "release 019 - fix namespace"
+git commit -m "release 021 - [fix] polo->nome para polo->descricao"
 git push
-git tag 0.2.019
+git tag 0.2.021
 git push --tags
 ```
