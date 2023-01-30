@@ -328,7 +328,7 @@ class sync_up_enrolments_service extends service {
             return;
         }
         $oferta = substr($username, 0, 5);
-        $polo_array = gettype($polo) == 'integer' ? [] : [$polo->nome];
+        $polo_array = gettype($polo) == 'integer' ? [] : [$polo->descricao];
 
         $groups = array_merge($polo_array, $room ? [$entrada, $oferta] : []);
         foreach ($groups as $groupname) {
