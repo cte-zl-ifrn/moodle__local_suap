@@ -82,7 +82,7 @@ class sync_up_enrolments_service extends service {
             foreach ($json->alunos as $aluno) {
                 $userid = $this->sync_user($aluno, $issuerid);
                 $this->sync_enrol($context->id, $userid, $aluno_config->enrolid, $aluno_config->roleid);
-                $this->sync_group($courseid, $userid, $aluno->username, $aluno->polo, $room);
+                $this->sync_group($courseid, $userid, $aluno->username, $aluno->polo, $json->turma, $room);
             }
     
             $issuerid = $this->sync_suap_issuer();
@@ -133,7 +133,7 @@ class sync_up_enrolments_service extends service {
         global $DB;
 
         $diario_code = $room ? "{$json->campus->sigla}.{$json->curso->codigo}" : "{$json->turma->codigo}.{$json->componente->sigla}";
-        $course = $DB->get_record('course', ['idnumber'=>$diario_code]);
+        $course = $DB->get_record('course', ['shortname'=>$diario_code]);
         if (!$course) {
             if ($room) {
                 $data = (object) [
@@ -322,15 +322,15 @@ class sync_up_enrolments_service extends service {
     }
 
 
-    function sync_group($courseid, $userid, $username, $polo, $room) {
+    function sync_group($courseid, $userid, $username, $polo, $turma, $room) {
         global $DB;
         if (empty($polo)) {
             return;
         }
-        $oferta = substr($username, 0, 5);
+        $entrada = substr($username, 0, 5);
         $polo_array = gettype($polo) == 'integer' ? [] : [$polo->descricao];
 
-        $groups = array_merge($polo_array, $room ? [$entrada, $oferta] : []);
+        $groups = array_merge($polo_array, $room ? [$turma->codigo, $entrada] : []);
         foreach ($groups as $groupname) {
             $data = ['courseid' => $courseid, 'name' => $groupname];
             $group = $DB->get_record('groups', $data);
