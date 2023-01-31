@@ -174,7 +174,7 @@ function get_diarios($username, $semestre, $situacao, $ordenacao, $disciplina, $
                 preg_match(REGEX_CODIGO_DIARIO, $diario->shortname, $matches);
                 if (
                         (count($matches) == REGEX_CODIGO_DIARIO_ELEMENTS_COUNT) &&
-                        ( (empty($q)) || (!empty($q) && strpos(strtoupper($diario->shortname . ' ' . $diario->shortname), strtoupper($q)) !== false ) ) &&
+                        ( (empty($q)) || (!empty($q) && strpos(strtoupper($diario->shortname . ' ' . $diario->fullname), strtoupper($q)) !== false ) ) &&
                         ( ( (empty($semestre)) || (!empty($semestre) && $matches[REGEX_CODIGO_DIARIO_SEMESTRE] == $semestre) ) &&
                           ( (empty($disciplina)) || (!empty($disciplina) && $matches[REGEX_CODIGO_DIARIO_DISCIPLINA] == $disciplina)) &&
                           ( (empty($curso)) || (!empty($curso) && $matches[REGEX_CODIGO_DIARIO_CURSO] == $curso) ) )
