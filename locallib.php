@@ -163,21 +163,27 @@ function get_diarios($username, $semestre, $situacao, $ordenacao, $disciplina, $
         unset($diario->summary);
         unset($diario->summaryformat);
         unset($diario->courseimage);
+        
         if (preg_match(REGEX_CODIGO_COORDENACAO, $diario->shortname)) {
             $coordenacoes[] = $diario;
         } elseif (preg_match(REGEX_CODIGO_PRATICA, $diario->shortname)) {
             $praticas[] = $diario;
-        } elseif (preg_match(REGEX_CODIGO_DIARIO, $diario->shortname, $matches) && !empty($semestre . $disciplina . $curso . $q) ) {;
-            if (
-                    ( count($matches) == REGEX_CODIGO_DIARIO_ELEMENTS_COUNT ) &&
-                    ( (empty($q)) || (!empty($q) && strpos(strtoupper($diario->shortname . ' ' . $diario->shortname), strtoupper($q)) !== false ) ) &&
-                    ( ( (empty($semestre)) || (!empty($semestre) && $matches[REGEX_CODIGO_DIARIO_SEMESTRE] == $semestre) ) &&
-                        ( (empty($disciplina)) || (!empty($disciplina) && $matches[REGEX_CODIGO_DIARIO_DISCIPLINA] == $disciplina)) &&
-                        ( (empty($curso)) || (!empty($curso) && $matches[REGEX_CODIGO_DIARIO_CURSO] == $curso) ) )
-                ) {
-                $diarios[] = $diario;
+        } elseif (!empty($semestre . $disciplina . $curso . $q) ) {
+            preg_match(REGEX_CODIGO_DIARIO, $diario->shortname, $matches);
+            if (count($matches) == REGEX_CODIGO_DIARIO_ELEMENTS_COUNT) {
+                if (
+                        ( (empty($q)) || (!empty($q) && strpos(strtoupper($diario->shortname . ' ' . $diario->fullname), strtoupper($q)) !== false ) ) &&
+                        ( 
+                            ( (empty($semestre)) || (!empty($semestre) && $matches[REGEX_CODIGO_DIARIO_SEMESTRE] == $semestre) ) &&
+                            ( (empty($disciplina)) || (!empty($disciplina) && $matches[REGEX_CODIGO_DIARIO_DISCIPLINA] == $disciplina)) &&
+                            ( (empty($curso)) || (!empty($curso) && $matches[REGEX_CODIGO_DIARIO_CURSO] == $curso) ) 
+                        )
+                    ) {
+                    $diarios[] = $diario;
+                }
             }
         } else {
+            // $diario->fullname = $diario->fullname . ' []';
             $diarios[] = $diario;
         }
     }
