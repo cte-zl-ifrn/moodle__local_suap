@@ -11,7 +11,7 @@
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace suap;
+namespace local_suap;
 
 require_once("$CFG->dirroot/course/externallib.php");
 require_once("$CFG->dirroot/enrol/externallib.php");
@@ -169,7 +169,7 @@ function get_diarios($username, $semestre, $situacao, $ordenacao, $disciplina, $
             $praticas[] = $diario;
         } elseif (preg_match(REGEX_CODIGO_DIARIO, $diario->shortname, $matches) && !empty($semestre . $disciplina . $curso . $q) ) {;
             if (
-                    (count($matches) == REGEX_CODIGO_DIARIO_ELEMENTS_COUNT) &&
+                    ( count($matches) == REGEX_CODIGO_DIARIO_ELEMENTS_COUNT ) &&
                     ( (empty($q)) || (!empty($q) && strpos(strtoupper($diario->shortname . ' ' . $diario->shortname), strtoupper($q)) !== false ) ) &&
                     ( ( (empty($semestre)) || (!empty($semestre) && $matches[REGEX_CODIGO_DIARIO_SEMESTRE] == $semestre) ) &&
                         ( (empty($disciplina)) || (!empty($disciplina) && $matches[REGEX_CODIGO_DIARIO_DISCIPLINA] == $disciplina)) &&
