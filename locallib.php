@@ -17,13 +17,14 @@ require_once("$CFG->dirroot/course/externallib.php");
 require_once("$CFG->dirroot/enrol/externallib.php");
 
 define("REGEX_CODIGO_DIARIO", '/^(\d\d\d\d\d)\.(\d*)\.(\d*)\.(.*)\.(.*\..*)$/');
+define("REGEX_CODIGO_COORDENACAO", '/^ZL\.\d*/');
+define("REGEX_CODIGO_PRATICA", '/^(.*)\.(\d{12}\d*)$/');
 define("REGEX_CODIGO_DIARIO_ELEMENTS_COUNT", 6);
 define("REGEX_CODIGO_DIARIO_SEMESTRE", 1);
 define("REGEX_CODIGO_DIARIO_PERIODO", 2);
 define("REGEX_CODIGO_DIARIO_CURSO", 3);
 define("REGEX_CODIGO_DIARIO_TURMA", 4);
 define("REGEX_CODIGO_DIARIO_DISCIPLINA", 5);
-define("REGEX_CODIGO_COORDENACAO", '/^ZL\.\d*/');
 
 function get_last_sort_order($tablename) {
     global $DB;
@@ -162,26 +163,22 @@ function get_diarios($username, $semestre, $situacao, $ordenacao, $disciplina, $
         unset($diario->summary);
         unset($diario->summaryformat);
         unset($diario->courseimage);
-        preg_match(REGEX_CODIGO_COORDENACAO, $diario->shortname, $matches);
-        if (count($matches)>0) {
+        if (preg_match(REGEX_CODIGO_COORDENACAO, $diario->shortname)) {
             $coordenacoes[] = $diario;
-        } elseif (strpos($diario->shortname, ".$username") !== false) {
+        } elseif (preg_match(REGEX_CODIGO_PRATICA, $diario->shortname)) {
             $praticas[] = $diario;
-        } else {
-            if (empty($semestre) && empty($disciplina) && empty($curso) && empty($q)) {
+        } elseif (preg_match(REGEX_CODIGO_DIARIO, $diario->shortname, $matches) && !empty($semestre . $disciplina . $curso . $q) ) {;
+            if (
+                    (count($matches) == REGEX_CODIGO_DIARIO_ELEMENTS_COUNT) &&
+                    ( (empty($q)) || (!empty($q) && strpos(strtoupper($diario->shortname . ' ' . $diario->shortname), strtoupper($q)) !== false ) ) &&
+                    ( ( (empty($semestre)) || (!empty($semestre) && $matches[REGEX_CODIGO_DIARIO_SEMESTRE] == $semestre) ) &&
+                        ( (empty($disciplina)) || (!empty($disciplina) && $matches[REGEX_CODIGO_DIARIO_DISCIPLINA] == $disciplina)) &&
+                        ( (empty($curso)) || (!empty($curso) && $matches[REGEX_CODIGO_DIARIO_CURSO] == $curso) ) )
+                ) {
                 $diarios[] = $diario;
-            } else {
-                preg_match(REGEX_CODIGO_DIARIO, $diario->shortname, $matches);
-                if (
-                        (count($matches) == REGEX_CODIGO_DIARIO_ELEMENTS_COUNT) &&
-                        ( (empty($q)) || (!empty($q) && strpos(strtoupper($diario->shortname . ' ' . $diario->shortname), strtoupper($q)) !== false ) ) &&
-                        ( ( (empty($semestre)) || (!empty($semestre) && $matches[REGEX_CODIGO_DIARIO_SEMESTRE] == $semestre) ) &&
-                          ( (empty($disciplina)) || (!empty($disciplina) && $matches[REGEX_CODIGO_DIARIO_DISCIPLINA] == $disciplina)) &&
-                          ( (empty($curso)) || (!empty($curso) && $matches[REGEX_CODIGO_DIARIO_CURSO] == $curso) ) )
-                    ) {
-                    $diarios[] = $diario;
-                }
             }
+        } else {
+            $diarios[] = $diario;
         }
     }
     
