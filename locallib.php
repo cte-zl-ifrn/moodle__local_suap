@@ -18,7 +18,7 @@ require_once("$CFG->dirroot/enrol/externallib.php");
 
 define("REGEX_CODIGO_DIARIO", '/^(\d\d\d\d\d)\.(\d*)\.(\d*)\.(.*)\.(.*\..*)$/');
 define("REGEX_CODIGO_COORDENACAO", '/^ZL\.\d*/');
-define("REGEX_CODIGO_PRATICA", '/^(.*)\.(\d{12}\d*)$/');
+define("REGEX_CODIGO_PRATICA", '/^(.*)\.(\d{11,14}\d*)$/');
 define("REGEX_CODIGO_DIARIO_ELEMENTS_COUNT", 6);
 define("REGEX_CODIGO_DIARIO_SEMESTRE", 1);
 define("REGEX_CODIGO_DIARIO_PERIODO", 2);
