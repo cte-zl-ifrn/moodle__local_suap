@@ -201,28 +201,16 @@ function get_diarios($username, $semestre, $situacao, $ordenacao, $disciplina, $
     ];
 }
 
-function set_favourite_course($courseid) {
-    /**
-     * https://presencial.ava.ifrn.edu.br/lib/ajax/service.php?sesskey=SLJBgpK4mG&info=message_popup_get_popup_notifications
-     * [{"index": 0, "methodname": "message_popup_get_popup_notifications", "args": { "limit": 20, "offset": 0, "useridto": "903"}}]
-     * [{"error":false,"data":{"notifications":[],"unreadcount":0}}]
-     * https://presencial.ava.ifrn.edu.br/message/output/popup/notifications.php
-     */
+// function set_favourite_course($courseid) {
+//     /**
+//      * https://presencial.ava.ifrn.edu.br/lib/ajax/service.php?sesskey=SLJBgpK4mG&info=message_popup_get_popup_notifications
+//      * [{"index": 0, "methodname": "message_popup_get_popup_notifications", "args": { "limit": 20, "offset": 0, "useridto": "903"}}]
+//      * [{"error":false,"data":{"notifications":[],"unreadcount":0}}]
+//      * https://presencial.ava.ifrn.edu.br/message/output/popup/notifications.php
+//      */
 
-     return \core_course_set_favourite_courses::set_favourite_courses($courseid);
-}
-
-function get_favourite_course($userid, $courseid) {
-    /**
-     * https://presencial.ava.ifrn.edu.br/lib/ajax/service.php?sesskey=SLJBgpK4mG&info=message_popup_get_popup_notifications
-     * [{"index": 0, "methodname": "message_popup_get_popup_notifications", "args": { "limit": 20, "offset": 0, "useridto": "903"}}]
-     * [{"error":false,"data":{"notifications":[],"unreadcount":0}}]
-     * https://presencial.ava.ifrn.edu.br/message/output/popup/notifications.php
-     */
-
-     return \core_user_get_course_user_profiles::get_course_user_profiles($userid, $courseid);
-}
-
+//      return \core_course_set_favourite_courses::set_favourite_courses($courseid);
+// }
 
 class service {
 
