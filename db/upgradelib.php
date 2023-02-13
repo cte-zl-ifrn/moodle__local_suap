@@ -90,6 +90,7 @@ function suap_bulk_user_custom_field() {
 
     suap_save_user_custom_field($cid, 'email_google_classroom', 'E-mail @escolar (Google Classroom');
     suap_save_user_custom_field($cid, 'email_academico', 'E-mail @academico (Microsoft)');
+    suap_save_user_custom_field($cid, 'email_secundario', 'Secundário (servidores)');
 
     suap_save_user_custom_field($cid, 'campus_id', 'ID do campus');
     suap_save_user_custom_field($cid, 'campus_descricao', 'Descrição do campus');
@@ -102,10 +103,14 @@ function suap_bulk_user_custom_field() {
     suap_save_user_custom_field($cid, 'turma_id', 'ID da turma');
     suap_save_user_custom_field($cid, 'turma_codigo', 'Código da turma');
     
-    suap_save_user_custom_field($cid, 'polo_id', 'ID da polo');
-    suap_save_user_custom_field($cid, 'polo_nome', 'Nome da polo');
+    suap_save_user_custom_field($cid, 'polo_id', 'ID do polo');
+    suap_save_user_custom_field($cid, 'polo_nome', 'Nome do polo');
     
     suap_save_user_custom_field($cid, 'ingresso_periodo', 'Período de ingresso');
+
+    suap_save_user_custom_field($cid, 'nome_apresentacao', 'Nome de apresentação');
+    suap_save_user_custom_field($cid, 'nome_completo', 'Nome completo');
+    suap_save_user_custom_field($cid, 'nome_social', 'Nome social');
 }
 
 function local_suap_migrate($oldversion) {
