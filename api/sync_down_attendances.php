@@ -1,7 +1,10 @@
 <?php
-require_once('../../config.php');
-require_once(__DIR__.'/locallib.php');
 
+namespace local_suap;
+
+require_once('../../config.php');
+require_once('../locallib.php');
+require_once("servicelib.php");
 
 function suap_sync_down_attendances() {
     global $CFG;

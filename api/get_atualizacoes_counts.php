@@ -1,6 +1,10 @@
 <?php
+
+namespace local_suap;
+
 require_once('../../../config.php');
 require_once('../locallib.php');
+require_once("servicelib.php");
 
 class get_messages_service extends \local_suap\service{
 

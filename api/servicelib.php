@@ -31,7 +31,7 @@ class service {
 
     function call() {
         try { 
-            $this->authenticate();
+            // $this->authenticate();
             echo json_encode($this->do_call());
         } catch (Exception $ex) {
             http_response_code(500);

@@ -1,6 +1,9 @@
 <?php
+namespace local_suap;
+
 require_once('../../config.php');
-require_once(__DIR__.'/locallib.php');
+require_once("../locallib.php");
+require_once("servicelib.php");
 
 
 class sync_up_enrolments_service extends service {

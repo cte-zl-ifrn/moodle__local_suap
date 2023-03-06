@@ -1,7 +1,11 @@
 <?php
+
+namespace local_suap;
+
 require_once('../../../config.php');
 require_once('../../../course/externallib.php');
 require_once('../locallib.php');
+require_once("servicelib.php");
 
 class set_favourite_course extends \local_suap\service{
 
