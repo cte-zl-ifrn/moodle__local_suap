@@ -333,16 +333,21 @@ class sync_up_enrolments_service extends service {
 
         $groups = array_merge($polo_array, $room ? [$turma->codigo, $entrada] : []);
         foreach ($groups as $groupname) {
-            $data = ['courseid' => $courseid, 'name' => $groupname];
-            $group = $DB->get_record('groups', $data);
-            if (!$group) {
-                \groups_create_group((object)$data);
+            $group_name = (!empty($groupname)) ? $groupname : '--Sem grupo--';
+            try {
+                $data = ['courseid' => $courseid, 'name' => $group_name];
                 $group = $DB->get_record('groups', $data);
+                if (!$group) {
+                    \groups_create_group((object)$data);
+                    $group = $DB->get_record('groups', $data);
+                }
+                if (!$DB->get_record('groups_members', ['groupid' => $group->id, 'userid' => $userid])) {
+                    \groups_add_member($group->id, $userid);
+                }
+            } catch (Exception $ex) {
+                dienow($ex->message . '. ' . $groupname);
             }
-            if (!$DB->get_record('groups_members', ['groupid' => $group->id, 'userid' => $userid])) {
-                \groups_add_member($group->id, $userid);
-            }
-        }
+    }
     }
 
 
