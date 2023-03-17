@@ -333,7 +333,7 @@ class sync_up_enrolments_service extends service {
 
         $groups = array_merge($polo_array, $room ? [$turma->codigo, $entrada] : []);
         foreach ($groups as $groupname) {
-            $group_name = (!empty($groupname)) ? $groupname : '--Sem grupo--';
+            $group_name = (!empty($groupname)) ? $groupname : '--Sem pólo--';
             try {
                 $data = ['courseid' => $courseid, 'name' => $group_name];
                 $group = $DB->get_record('groups', $data);
