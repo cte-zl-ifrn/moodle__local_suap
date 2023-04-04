@@ -83,7 +83,7 @@ class sync_up_enrolments_service extends service {
             foreach ($json->alunos as $aluno) {
                 $userid = $this->sync_user($aluno, $issuerid);
                 $this->sync_enrol($context->id, $userid, $aluno_config->enrolid, $aluno_config->roleid);
-                $this->sync_group($courseid, $userid, $aluno->username, $aluno->polo, $json->turma, $room);
+                $this->sync_group($courseid, $userid, $aluno->matricula, $aluno->polo, $json->turma, $room);
             }
     
             $issuerid = $this->sync_suap_issuer();
@@ -265,6 +265,7 @@ class sync_up_enrolments_service extends service {
         }
 
         $usuario = $DB->get_record("user", ["username" => $username]);
+        $user->username = $username;
         $nome_parts = explode(' ', $user->nome);
         $lastname = array_pop($nome_parts);
         $firstname = implode(' ', $nome_parts);
@@ -298,8 +299,8 @@ class sync_up_enrolments_service extends service {
         }
         create_or_update(
             'auth_oauth2_linked_login', 
-            ['userid'=>$userid, 'issuerid'=>$issuerid],
-            ['username'=>$username, 'email'=> !empty($user->email) ? $user->email : $user->email_secundario, 'timecreated'=>time(), 'usermodified'=>0, 'confirmtoken'=>'', 'confirmtokenexpires'=>0, 'timemodified'=>time()],
+            ['userid'=>$userid, 'issuerid'=>$issuerid, 'username'=>$username],
+            ['email'=> !empty($user->email) ? $user->email : $user->email_secundario, 'timecreated'=>time(), 'usermodified'=>0, 'confirmtoken'=>'', 'confirmtokenexpires'=>0, 'timemodified'=>time()],
             ['timemodified'=>time()]
         );
         
