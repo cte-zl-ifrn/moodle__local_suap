@@ -266,12 +266,10 @@ class sync_up_enrolments_service extends service {
 
         $usuario = $DB->get_record("user", ["username" => $username]);
         $user->username = $username;
-        $nome_parts = explode(' ', $user->nome);
-        $lastname = array_pop($nome_parts);
-        $firstname = implode(' ', $nome_parts);
+        $nome_parts = explode(' ', $user->nome_registro);
         $common = [
-            'lastname'=>$lastname,
-            'firstname'=>$firstname,
+            'lastname'=>$names[0],
+            'firstname'=>implode(' ', array_slice($names, 1)),
             'auth'=>config($auth),
             'email'=> !empty($user->email) ? $user->email : $user->email_secundario,
             'suspended'=>($status == 'ativo' ? 0 : 1),
