@@ -68,6 +68,18 @@ class get_diarios_service extends \local_suap\service {
         global $DB, $CFG, $USER;
     
         $USER = $DB->get_record('user', ['username' => $username]);
+        $USER = $DB->get_record('user', ['username' => $_GET['username']]);
+        if (!$USER) {
+            return [
+                'error' => ['message' => "Usuário '{$_GET['username']}' não existe", 'code' => '404'],
+                "semestres" => [],
+                "disciplinas" => [],
+                "cursos" => [],
+                "diarios" => [],
+                "coordenacoes" => [],
+                "praticas" => [],
+            ];
+        }
         
         $all_diarios = $this->get_all_diarios($USER->username);
         $enrolled_courses = \core_course_external::get_enrolled_courses_by_timeline_classification($situacao, 0, 0, $ordenacao)['courses'];
