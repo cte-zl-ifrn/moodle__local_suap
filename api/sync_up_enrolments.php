@@ -142,7 +142,7 @@ class sync_up_enrolments_service extends service {
                     "fullname"=>$room ? "Sala de coordenação do curso {$json->curso->nome}" : $json->componente->descricao,
                     "shortname"=>$diario_code,
                     "idnumber"=>$diario_code,
-                    "visible"=>1,
+                    "visible"=>0,
                     "enablecompletion"=>1,
                     // "startdate"=>time(),
                     "showreports"=>1,
