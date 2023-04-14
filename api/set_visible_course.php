@@ -16,15 +16,15 @@ class set_hidden_course extends \local_suap\service{
 
         $course = $DB->get_record('course', ['id' => $_GET['courseid']]);
 
-        $hidden = $_GET['hidden'];
+        $visible = $_GET['visible'];
 
-        return $this->execute($course, $hidden);
+        return $this->execute($course, $visible);
     }
 
-    function execute($course, $hidden) {
+    function execute($course, $visible) {
         global $DB;
 
-        $course->hidden = $hidden;
+        $course->visible = $visible;
         $DB->update_record('course', $course);
         return ["error" => false];
     }
