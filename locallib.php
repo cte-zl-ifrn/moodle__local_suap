@@ -47,16 +47,16 @@ function get_or_create($tablename, $keys, $values) {
 }
 
 
-function create_or_update($tablename, $keys, $inserts, $updates=[], $insert_only=[]) {
+function create_or_update($tablename, $keys, $allways, $updates=[], $insert=[]) {
     global $DB;
     $record = $DB->get_record($tablename, $keys);
     if ($record) {
-        foreach (array_merge($keys, $inserts, $updates) as $attr => $value) {
+        foreach (array_merge($keys, $allways, $updates) as $attr => $value) {
             $record->{$attr} = $value;
         }
         $DB->update_record($tablename, $record);
     } else {
-        $record = (object)array_merge($keys, $inserts, $insert_only);
+        $record = (object)array_merge($keys, $allways, $insert);
         $record->id = $DB->insert_record($tablename, $record);
     }
     return $record;
