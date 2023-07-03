@@ -34,11 +34,10 @@ class service {
             $this->authenticate();
             echo json_encode($this->do_call());
         } catch (Exception $ex) {
-            http_response_code(500);
             if ($ex->getMessage() == "Data submitted is invalid (value: Data submitted is invalid)") {
-                echo json_encode(["error" => ["message" => "Ocorreu uma inconsistência no servidor do AVA. Este erro é conhecido e a solução dele já está sendo estudado pela equipe de desenvolvimento. Favor tentar novamente em 5 minutos."]]);
+                dienow("Ocorreu uma inconsistência no servidor do AVA. Este erro é conhecido e a solução dele já está sendo estudado pela equipe de desenvolvimento. Favor tentar novamente em 5 minutos.", 509);
             } else {
-                echo json_encode(["error" => ["message" => $ex->getMessage()]]);
+                dienow($ex->getMessage(), 500);
             }
         }
     }

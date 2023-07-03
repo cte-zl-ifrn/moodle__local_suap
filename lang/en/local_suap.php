@@ -61,6 +61,13 @@ $string["default_student_role_id_desc"] = 'Normally 5. Why? This is the Moodle d
 $string["default_student_enrol_type"] = 'Default enrol_type for a new student enrolment';
 $string["default_student_enrol_type_desc"] = 'Normally manual. Why? Because new students will be enrolled -manually- on SUAP and synched to Moodle';
 
+$string["default_inactivated_student_auth"] = 'Default method authentication for inactivated student users';
+$string["default_inactivated_student_auth_desc"] = 'We recommend that you configure oAuth with SOAP, but... the choices are yours. But why oauth? Because your students can take advantage of the SSO and AVA portal for SUAP.';
+$string["default_inactivated_student_role_id"] = 'Default roleid for a inactivated student enrolment';
+$string["default_inactivated_student_role_id_desc"] = 'Normally 5. Why? This is the Moodle default.';
+$string["default_inactivated_student_enrol_type"] = 'Default enrol_type for a inactivated student enrolment';
+$string["default_inactivated_student_enrol_type_desc"] = 'Normally manual. Why? Because inactivated students will be enrolled -manually- on SUAP and synched to Moodle';
+
 $string["default_teacher_auth"] = 'Default method authentication for new teacher users';
 $string["default_teacher_auth_desc"] = 'We recommend that you configure oAuth with SOAP, but... the choices are yours. But why oauth? Because your teachers can take advantage of the SSO and AVA portal for SUAP.';
 $string["default_teacher_role_id"] = 'Default roleid for a new teacher enrolment';

@@ -57,6 +57,9 @@ class suap_admin_settingspage extends admin_settingpage {
             $this->add_configtext("default_student_role_id", 5);
             $this->add_configtext("default_student_enrol_type", 'manual');
 
+            $this->add_configtext("default_inactivated_student_role_id", 5);
+            $this->add_configtext("default_inactivated_student_enrol_type", 'manual');
+
             $this->add_configtext("default_teacher_auth", 'oauth2');
             $this->add_configtext("default_teacher_role_id", 3);
             $this->add_configtext("default_teacher_enrol_type", 'manual');
@@ -64,7 +67,6 @@ class suap_admin_settingspage extends admin_settingpage {
             $this->add_configtext("default_assistant_auth", 'oauth2');
             $this->add_configtext("default_assistant_role_id", 4);
             $this->add_configtext("default_assistant_enrol_type", 'manual');
-
 
             // $authplugin = get_auth_plugin('suap');
             // display_auth_lock_options($authplugin->authtype, $authplugin->userfields, get_string('auth_fieldlocks_help', 'auth'), false, false);

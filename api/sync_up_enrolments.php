@@ -32,69 +32,61 @@ class sync_up_enrolments_service extends service {
     }
 
 
-    function call() {
+    function do_call() {
         global $CFG;
     
-        try { 
-            $this->authenticate();
-            
-            $json = $this->validate_json();
-    
-            $diario_id = $this->sync_struct($json, false);
-            $sala_id = $this->sync_struct($json, true);
+        $json = $this->validate_json();
 
-            echo json_encode(
-                [
-                    "url" => "{$CFG->wwwroot}/course/view.php?id={$diario_id}",
-                    "url_sala_coordenacao" => "{$CFG->wwwroot}/course/view.php?id={$sala_id}"
-                ]
-            );
-        } catch (Exception $ex) {
-            http_response_code(500);
-            if ($ex->getMessage() == "Data submitted is invalid (value: Data submitted is invalid)") {
-                echo json_encode(["error" => ["message" => "Ocorreu uma inconsistência no servidor do AVA. Este erro é conhecido e a solução dele já está sendo estudado pela equipe de desenvolvimento. Favor tentar novamente em 5 minutos."]]);
-            } else {
-                echo json_encode(["error" => ["message" => $ex->getMessage()]]);
-            }
-        }
+
+        $diario_id = $this->sync_struct($json, false);
+        $sala_id = $this->sync_struct($json, true);
+        return [
+            "url" => "{$CFG->wwwroot}/course/view.php?id={$diario_id}",
+            "url_sala_coordenacao" => "{$CFG->wwwroot}/course/view.php?id={$sala_id}"
+        ];
     }
 
 
     function sync_struct($json, $room=false) {
-        global $CFG;
+        global $CFG, $DB;
     
-        try { 
+        try {
             $categoryid = $this->sync_category_hierarchy($json, $room);
             $courseid = $this->sync_course($categoryid, $json, $room);
             $context = \context_course::instance($courseid);
         
             $issuerid = $this->sync_suap_issuer();
 
-            $principal_config = $this->get_enrolment_config($courseid, 'teacher');
-            $moderador_config = $this->get_enrolment_config($courseid, 'assistant');
+            $principal_config = $this->get_enrolment_config($courseid, 'teacher', 'SUAP: Professor');
+            $moderador_config = $this->get_enrolment_config($courseid, 'assistant', 'SUAP: Tutor');
             foreach ($json->professores as $professor) {
                 $userid = $this->sync_user($professor, $issuerid);
                 $tipo = strtolower($professor->tipo);
                 $conf = $tipo == 'principal' || $tipo == 'formador' ? $principal_config : $moderador_config;
-                $this->sync_enrol($context->id, $userid, $conf->enrolid, $conf->roleid);
+                $this->sync_enrol($context->id, $userid, $conf->enrolid, $conf->roleid, $aluno->status);
             }
-    
-            $aluno_config = $this->get_enrolment_config($courseid, 'student');
+
+            $aluno_config = $this->get_enrolment_config($courseid, 'student', 'SUAP: Aluno');
+            $alunos_inativos = [];
+            $alunos_sincronizados = [];
             foreach ($json->alunos as $aluno) {
                 $userid = $this->sync_user($aluno, $issuerid);
-                $this->sync_enrol($context->id, $userid, $aluno_config->enrolid, $aluno_config->roleid);
+                $this->sync_enrol($context->id, $userid, $aluno_config->enrolid, $aluno_config->roleid, $aluno->situacao);
                 $this->sync_group($courseid, $userid, $aluno->matricula, $aluno->polo, $json->turma, $room);
+                if ($aluno->situacao != 'ativo') {
+                    $alunos_inativos[] = $userid;
+                }
+                $alunos_sincronizados[] = $userid;
             }
-    
-            $issuerid = $this->sync_suap_issuer();
 
+            [$insql, $inparams] = $DB->get_in_or_equal($alunos_sincronizados);
+            $DB->execute("UPDATE {user_enrolments} SET status=1 WHERE enrolid = $aluno_config->enrolid AND userid NOT IN (SELECT userid FROM {user_enrolments} WHERE userid $insql and enrolid = $aluno_config->enrolid)", $inparams);
             return $courseid;
         } catch (Exception $ex) {
-            http_response_code(500);
             if ($ex->getMessage() == "Data submitted is invalid (value: Data submitted is invalid)") {
-                echo json_encode(["error" => ["message" => "Ocorreu uma inconsistência no servidor do AVA. Este erro é conhecido e a solução dele já está sendo estudado pela equipe de desenvolvimento. Favor tentar novamente em 5 minutos."]]);
+                dienow("Ocorreu uma inconsistência no servidor do AVA. Este erro é conhecido e a solução dele já está sendo estudado pela equipe de desenvolvimento. Favor tentar novamente em 5 minutos.", 510);
             } else {
-                echo json_encode(["error" => ["message" => $ex->getMessage()]]);
+                dienow($ex->getMessage(), 501);
             }
         }
     }
@@ -238,13 +230,17 @@ class sync_up_enrolments_service extends service {
     }
 
 
-    function get_enrolment_config($courseid, $type) {
+    function get_enrolment_config($courseid, $type, $name)  {
         $role_id = config("default_{$type}_role_id");
         $enrol_type = config("default_{$type}_enrol_type");
-        $enrol_id = get_or_create(
+        $customchar1 = $type=='inactivated_student' ? 'inactivated_student' : NULL;
+        
+        $enrol_id = create_or_update(
             'enrol', 
-            ['enrol'=>$enrol_type, 'courseid'=>$courseid, 'roleid'=>$role_id],
-            ['timecreated'=>time(), 'timemodified'=>time()]
+            ['courseid'=>$courseid, 'roleid'=>$role_id, 'enrol'=>$enrol_type, 'customchar1'=>$customchar1],
+            ['timemodified'=>time(), 'name'=>$name, 'status'=>$type=='inactivated_student'],
+            ['timecreated'=>time()],
+            [],
         )->id;
         return (object)['roleid'=>$role_id, 'enrol_type'=>$enrol_type, 'enrolid'=>$enrol_id];
     }
@@ -306,15 +302,21 @@ class sync_up_enrolments_service extends service {
     }
 
 
-    function sync_enrol($contextid, $userid, $enrolid, $roleid){
+    function sync_enrol($contextid, $userid, $enrolid, $roleid, $situacao){
         $n = time();
         $user_enrolments = get_or_create(
             'user_enrolments',
-            ['userid'=>$userid, 'enrolid'=>$enrolid],
-            ['timecreated'=>$n, 'timemodified'=>$n, 'timestart'=>$n, 'timeend'=>0, 'modifierid'=>$userid]
+            ['userid'=>$userid, 'enrolid'=>$enrolid], 
+            []
         );
 
-        $role_assignments = get_or_create(
+        create_or_update(
+            'user_enrolments', 
+            ['userid'=>$userid, 'enrolid'=>$enrolid],
+            ['timecreated'=>$n, 'timemodified'=>$n, 'timestart'=>$n, 'timeend'=>0, 'modifierid'=>$userid, 'status'=>$situacao != 'ativo']
+        );
+
+        get_or_create(
             'role_assignments',
             ['userid'=>$userid, 'contextid'=>$contextid, 'roleid'=>$roleid],
             ['timemodified'=>$n, 'modifierid'=>$userid]
@@ -344,9 +346,9 @@ class sync_up_enrolments_service extends service {
                     \groups_add_member($group->id, $userid);
                 }
             } catch (Exception $ex) {
-                dienow($ex->message . '. ' . $groupname);
+                dienow($ex->message . '. ' . $groupname, 500);
             }
-    }
+        }
     }
 
 
