@@ -90,6 +90,7 @@ class get_diarios_service extends \local_suap\service {
             unset($diario->summary);
             unset($diario->summaryformat);
             unset($diario->courseimage);
+            $diario->can_set_visibility = 0;
             
             if (preg_match(REGEX_CODIGO_COORDENACAO, $diario->shortname)) {
                 $coordenacoes[] = $diario;
