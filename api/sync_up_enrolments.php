@@ -63,7 +63,7 @@ class sync_up_enrolments_service extends service {
                 $userid = $this->sync_user($professor, $issuerid);
                 $tipo = strtolower($professor->tipo);
                 $conf = $tipo == 'principal' || $tipo == 'formador' ? $principal_config : $moderador_config;
-                $this->sync_enrol($context->id, $userid, $conf->enrolid, $conf->roleid, $aluno->status);
+                $this->sync_enrol($context->id, $userid, $conf->enrolid, $conf->roleid, "ativo");
             }
 
             $aluno_config = $this->get_enrolment_config($courseid, 'student', 'SUAP: Aluno');
