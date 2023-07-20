@@ -90,7 +90,8 @@ class get_diarios_service extends \local_suap\service {
             unset($diario->summary);
             unset($diario->summaryformat);
             unset($diario->courseimage);
-            $diario->can_set_visibility = 0;
+            $coursecontext = \context_course::instance($diario->id);
+            $diario->can_set_visibility = has_capability('moodle/course:visibility', $coursecontext, $USER) ? 1 : 0;
             
             if (preg_match(REGEX_CODIGO_COORDENACAO, $diario->shortname)) {
                 $coordenacoes[] = $diario;

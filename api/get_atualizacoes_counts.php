@@ -16,7 +16,7 @@ class get_messages_service extends \local_suap\service{
             return $this->get_atualizacoes_counts($USER->id);
         } else {
             return [
-                'error' => ['message' => "Usuário '{$_GET['username']}' não existe", 'code' => '404'],
+                'error' => ['message' => "Usuário '{$_GET['username']}' não existe", 'code' => 404],
                 'unread_conversations_count' => 0,
                 'unread_popup_notification_count' => 0,
             ];
