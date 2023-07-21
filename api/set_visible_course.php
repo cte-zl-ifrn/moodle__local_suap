@@ -14,7 +14,7 @@ class set_hidden_course extends \local_suap\service{
 
         $USER = $DB->get_record('user', ['username' => $_GET['username']]);
 
-        $coursecontext = \context_course::instance($diario->id);
+        $coursecontext = \context_course::instance($_GET['courseid']);
         if (!has_capability('moodle/course:visibility', $coursecontext, $USER)) {
             die("{'error': {'message': 'Sem permissão de alterar a visibilidade deste curso.', 'code': 403}}");
         }
