@@ -71,7 +71,7 @@ class get_diarios_service extends \local_suap\service {
         $USER = $DB->get_record('user', ['username' => $_GET['username']]);
         if (!$USER) {
             return [
-                'error' => ['message' => "Usuário '{$_GET['username']}' não existe", 'code' => '404'],
+                'error' => ['message' => "Usuário '{$_GET['username']}' não existe", 'code' => 404],
                 "semestres" => [],
                 "disciplinas" => [],
                 "cursos" => [],

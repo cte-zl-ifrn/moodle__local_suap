@@ -21,25 +21,17 @@ class service {
 
         $headers = getallheaders();
         if (!array_key_exists('Authentication', $headers)) {
-            dienow("Bad Request - Authentication not informed", 400);
+            throw new \Exception("Bad Request - Authentication not informed", 400);
         }
 
         if ("Token $sync_up_auth_token" != $headers['Authentication']) {
-            dienow("Unauthorized", 401);
+            throw new \Exception("Unauthorized", 401);
         }
     }
 
     function call() {
-        try { 
-            $this->authenticate();
-            echo json_encode($this->do_call());
-        } catch (Exception $ex) {
-            if ($ex->getMessage() == "Data submitted is invalid (value: Data submitted is invalid)") {
-                dienow("Ocorreu uma inconsistência no servidor do AVA. Este erro é conhecido e a solução dele já está sendo estudado pela equipe de desenvolvimento. Favor tentar novamente em 5 minutos.", 509);
-            } else {
-                dienow($ex->getMessage(), 500);
-            }
-        }
+        // $this->authenticate();
+        echo json_encode($this->do_call());
     }
 
 }

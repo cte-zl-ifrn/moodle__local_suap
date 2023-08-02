@@ -55,28 +55,28 @@ $string["default_user_preferences"] = 'Default user preferences';
 $string["default_user_preferences_desc"] = 'All new user (student or teacher) will have this preferences. Use one line per preferece. Like a .ini file.';
 
 $string["default_student_auth"] = 'Default method authentication for new student users';
-$string["default_student_auth_desc"] = 'We recommend that you configure oAuth with SOAP, but... the choices are yours. But why oauth? Because your students can take advantage of the SSO and AVA portal for SUAP.';
+$string["default_student_auth_desc"] = 'We recommend that you configure oAuth with SOAP, but... the choices are yours. But why oauth? Because your students can take advantage of the SSO and Painel AVA for SUAP.';
 $string["default_student_role_id"] = 'Default roleid for a new student enrolment';
 $string["default_student_role_id_desc"] = 'Normally 5. Why? This is the Moodle default.';
 $string["default_student_enrol_type"] = 'Default enrol_type for a new student enrolment';
 $string["default_student_enrol_type_desc"] = 'Normally manual. Why? Because new students will be enrolled -manually- on SUAP and synched to Moodle';
 
 $string["default_inactivated_student_auth"] = 'Default method authentication for inactivated student users';
-$string["default_inactivated_student_auth_desc"] = 'We recommend that you configure oAuth with SOAP, but... the choices are yours. But why oauth? Because your students can take advantage of the SSO and AVA portal for SUAP.';
+$string["default_inactivated_student_auth_desc"] = 'We recommend that you configure oAuth with SOAP, but... the choices are yours. But why oauth? Because your students can take advantage of the SSO and Painel AVA for SUAP.';
 $string["default_inactivated_student_role_id"] = 'Default roleid for a inactivated student enrolment';
 $string["default_inactivated_student_role_id_desc"] = 'Normally 5. Why? This is the Moodle default.';
 $string["default_inactivated_student_enrol_type"] = 'Default enrol_type for a inactivated student enrolment';
 $string["default_inactivated_student_enrol_type_desc"] = 'Normally manual. Why? Because inactivated students will be enrolled -manually- on SUAP and synched to Moodle';
 
 $string["default_teacher_auth"] = 'Default method authentication for new teacher users';
-$string["default_teacher_auth_desc"] = 'We recommend that you configure oAuth with SOAP, but... the choices are yours. But why oauth? Because your teachers can take advantage of the SSO and AVA portal for SUAP.';
+$string["default_teacher_auth_desc"] = 'We recommend that you configure oAuth with SOAP, but... the choices are yours. But why oauth? Because your teachers can take advantage of the SSO and Painel AVA for SUAP.';
 $string["default_teacher_role_id"] = 'Default roleid for a new teacher enrolment';
 $string["default_teacher_role_id_desc"] = 'Normally 3. Why? This is the Moodle default.';
 $string["default_teacher_enrol_type"] = 'Default enrol_type for a new teacher enrolment';
 $string["default_teacher_enrol_type_desc"] = 'Normally manual. Why? Because new teachers will be enrolled -manually- on SUAP and synched to Moodle';
 
 $string["default_assistant_auth"] = 'Default method authentication for new assistant users';
-$string["default_assistant_auth_desc"] = 'We recommend that you configure oAuth with SOAP, but... the choices are yours. But why oauth? Because your assistants can take advantage of the SSO and AVA portal for SUAP.';
+$string["default_assistant_auth_desc"] = 'We recommend that you configure oAuth with SOAP, but... the choices are yours. But why oauth? Because your assistants can take advantage of the SSO and Painel AVA for SUAP.';
 $string["default_assistant_role_id"] = 'Default roleid for a new assistant enrolment';
 $string["default_assistant_role_id_desc"] = 'Normally 3. Why? This is the Moodle default.';
 $string["default_assistant_enrol_type"] = 'Default enrol_type for a new assistant enrolment';
