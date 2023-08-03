@@ -14,6 +14,20 @@ require_once("servicelib.php");
 class sync_up_enrolments_service extends service {
 
 
+    function do_call() {
+        global $CFG;
+        
+        $json = $this->validate_json();
+        
+        $diario_id = $this->sync_struct($json, false);
+        
+        $sala_id = $this->sync_struct($json, true);
+        
+        $prefix = "{$CFG->wwwroot}/course/view.php";
+        return ["url" => "$prefix?id={$diario_id}", "url_sala_coordenacao" => "$prefix?id={$sala_id}"];
+    }
+
+
     function validate_json() {
         if (!array_key_exists('jsonstring', $_POST)) {
             throw new \Exception("Atributo \'jsonstring\' é obrigatório.", 550);
@@ -31,37 +45,26 @@ class sync_up_enrolments_service extends service {
     }
 
 
-    function do_call() {
-        global $CFG;
-    
-        $json = $this->validate_json();
-
-        $diario_id = $this->sync_struct($json, false);
-        $sala_id = $this->sync_struct($json, true);
-        $prefix = "{$CFG->wwwroot}/course/view.php";
-        return ["url" => "$prefix?id={$diario_id}", "url_sala_coordenacao" => "$prefix?id={$sala_id}"];
-    }
-
-
     function sync_struct($json, $room=false) {
         global $CFG, $DB;
 
-        $categoryid = $this->sync_category_hierarchy($json, $room);
+
+        $categoryid = $this->sync_category_hierarchy($json, $room);       
         $courseid = $this->sync_course($categoryid, $json, $room);
         $context = \context_course::instance($courseid);
 
         $issuerid = $this->sync_suap_issuer();
 
-        $principal_config = $this->get_enrolment_config($courseid, 'teacher', 'SUAP: Professor');
-        $moderador_config = $this->get_enrolment_config($courseid, 'assistant', 'SUAP: Tutor');
+        $principal_config = $this->get_enrolment_config($courseid, ($room ? 'instructor' : 'teacher'));
+        $moderador_config = $this->get_enrolment_config($courseid, ($room ? 'instructor' : 'assistant'));
         foreach ($json->professores as $professor) {
             $userid = $this->sync_user($professor, $issuerid);
             $tipo = strtolower($professor->tipo);
-            $conf = $tipo == 'principal' || $tipo == 'formador' ? $principal_config : $moderador_config;
-            $this->sync_enrol($context->id, $userid, $conf->enrolid, $conf->roleid, "ativo");
+            $docente_conf = ($tipo == 'principal' || $tipo == 'formador' ? $principal_config : $moderador_config);
+            $this->sync_enrol($context->id, $userid, $docente_conf->enrolid, $docente_conf->roleid, "ativo");
         }
 
-        $aluno_config = $this->get_enrolment_config($courseid, 'student', 'SUAP: Aluno');
+        $aluno_config = $this->get_enrolment_config($courseid, 'student');
         $alunos_inativos = [];
         $alunos_sincronizados = [];
         foreach ($json->alunos as $aluno) {
@@ -74,8 +77,25 @@ class sync_up_enrolments_service extends service {
             $alunos_sincronizados[] = $userid;
         }
 
+        
+        $key = "%extra%";
+        $sql_base = <<<"SQL"
+                UPDATE  {user_enrolments}
+                SET     status = ?
+                WHERE   id IN (
+                                SELECT   ue.id
+                                FROM     {user_enrolments} ue
+                                             INNER JOIN {enrol} e ON (ue.enrolid=e.id AND e.courseid=$courseid)
+                                WHERE    e.roleid = $aluno_config->roleid %extra%
+                              )
+        SQL;
         [$insql, $inparams] = $DB->get_in_or_equal($alunos_sincronizados);
-        $DB->execute("UPDATE {user_enrolments} SET status=1 WHERE enrolid = $aluno_config->enrolid AND userid NOT IN (SELECT userid FROM {user_enrolments} WHERE userid $insql and enrolid = $aluno_config->enrolid)", $inparams);
+        
+        // Inativa todos os alunos, no diário e coordenação
+        $DB->execute(str_replace($key, "",  $sql_base), [1]);
+
+        // Ativa apenas os que estão vindo na sincronização, no diário e coordenação
+        $DB->execute(str_replace($key, "AND ue.userid $insql", $sql_base), array_merge([0], $inparams));
         return $courseid;
     }
 
@@ -85,15 +105,19 @@ class sync_up_enrolments_service extends service {
         $top_category_name = config('top_category_name') ?: 'Diários';
         $top_category_parent = config('top_category_parent') ?: 0;
         $ano_periodo = substr($data->turma->codigo, 0, 4) . "." . substr($data->turma->codigo, 4, 1);
+        
 
         $top_category = $this->sync_category($top_category_idnumber, $top_category_name, $top_category_parent);
         $campus = $this->sync_category($data->campus->sigla, $data->campus->descricao, $top_category->id);
         $curso = $this->sync_category($data->curso->codigo, $data->curso->nome, $campus->id);
+        
         if ($room) {
             return $curso->id;
         }
+
         $semestre = $this->sync_category("{$data->curso->codigo}.{$ano_periodo}", $ano_periodo, $curso->id);
         $turma = $this->sync_category($data->turma->codigo, $data->turma->codigo, $semestre->id);
+
         return $turma->id;
     }
 
@@ -102,36 +126,40 @@ class sync_up_enrolments_service extends service {
         global $DB;
     
         $course_category = $DB->get_record('course_categories', ['idnumber'=>$idnumber]);
-        die($idnumber);
         if (empty($course_category)) {
             $course_category = \core_course_category::create(['name'=>$name, 'idnumber'=>$idnumber, 'parent'=>$parent]);
-        }
-    
+        }   
+
         return $course_category;
     }
 
 
     function sync_course($categoryid, $json, $room){
         global $DB;
-
+        
         $diario_code = $room ? "{$json->campus->sigla}.{$json->curso->codigo}" : "{$json->turma->codigo}.{$json->componente->sigla}";
-        $course = $DB->get_record('course', ['shortname'=>$diario_code]);
+        $diario_code_long = $room ? $diario_code : "{$diario_code}#{$json->diario->id}";
+        $course = $DB->get_record('course', ['idnumber'=>$diario_code_long]) ?: $DB->get_record('course', ['idnumber'=>$diario_code]);
+        if (!$course) {
+            $course = $DB->get_record('course', ['shortname'=>$diario_code_long]) ?: $DB->get_record('course', ['shortname'=>$diario_code]);
+        }
+        
         if (!$course) {
             $data = [
                     "category"=>$categoryid,
-                    "shortname"=>$diario_code,
+                    "shortname"=>$diario_code_long,
                     "fullname"=> $room ? "Sala de coordenação do curso {$json->curso->nome}" : $json->componente->descricao,
-                    "idnumber"=>$diario_code,
+                    "idnumber"=>$diario_code_long,
                     "visible"=>0,
                     "enablecompletion"=>1,
                     // "startdate"=>time(),
                     "showreports"=>1,
                     "completionnotify"=>1,
-                    
+
                     "customfield_campus_id"=> $json->campus->id,
                     "customfield_campus_descricao"=> $json->campus->descricao,
                     "customfield_campus_sigla"=> $json->campus->sigla,
-    
+
                     "customfield_curso_id"=> $json->curso->id,
                     "customfield_curso_codigo"=> $json->curso->codigo,
                     "customfield_curso_descricao"=> $json->curso->descricao,
@@ -139,33 +167,43 @@ class sync_up_enrolments_service extends service {
             ];
             
             if ($room) {
-                $data = array_merge($data, [
-                    "customfield_curso_sala_coordenacao"=> 'Sim',
-                ]);
+                $data = array_merge(
+                    $data,
+                    [
+                        "customfield_curso_sala_coordenacao"=> 'Sim',
+                    ]
+                );
             } else {
-                $data = array_merge($data, [
-                    "customfield_curso_sala_coordenacao"=> 'Não',
-    
-                    "customfield_turma_id"=> $json->turma->id,
-                    "customfield_turma_codigo"=> $json->turma->codigo,
-    
-                    "customfield_turma_ano_periodo"=> substr($json->turma->codigo, 0, 4) . "." . substr($json->turma->codigo, 4, 1),
-    
-                    "customfield_diario_id"=> $json->diario->id,
-                    "customfield_diario_situacao"=> $json->diario->situacao,
-    
-                    "customfield_disciplina_id"=> $json->componente->id,
-                    "customfield_disciplina_sigla"=> $json->componente->sigla,
-                    "customfield_disciplina_descricao"=> $json->componente->descricao,
-                    "customfield_disciplina_descricao_historico"=> $json->componente->descricao_historico,
-                    // "customfield_disciplina_periodo"=> $json->componente->periodo,
-                    "customfield_disciplina_tipo"=> $json->componente->tipo,
-                    "customfield_disciplina_optativo"=> $json->componente->optativo,
-                    "customfield_disciplina_qtd_avaliacoes"=> $json->componente->qtd_avaliacoes,
-                ]);
+                $data = array_merge(
+                    $data,
+                    [
+                        "customfield_curso_sala_coordenacao"=> 'Não',
+        
+                        "customfield_turma_id"=> $json->turma->id,
+                        "customfield_turma_codigo"=> $json->turma->codigo,
+        
+                        "customfield_turma_ano_periodo"=> substr($json->turma->codigo, 0, 4) . "." . substr($json->turma->codigo, 4, 1),
+        
+                        "customfield_diario_id"=> $json->diario->id,
+                        "customfield_diario_situacao"=> $json->diario->situacao,
+        
+                        "customfield_disciplina_id"=> $json->componente->id,
+                        "customfield_disciplina_sigla"=> $json->componente->sigla,
+                        "customfield_disciplina_descricao"=> $json->componente->descricao,
+                        "customfield_disciplina_descricao_historico"=> $json->componente->descricao_historico,
+                        // "customfield_disciplina_periodo"=> $json->componente->periodo,
+                        "customfield_disciplina_tipo"=> $json->componente->tipo,
+                        "customfield_disciplina_optativo"=> $json->componente->optativo,
+                        "customfield_disciplina_qtd_avaliacoes"=> $json->componente->qtd_avaliacoes,
+                    ]
+                );
             }
 
-            $course = create_course($data);
+            $course = create_course((object)$data);
+        } else {
+            $course->idnumber = $diario_code_long;
+            $course->shortname = $diario_code_long;
+            update_course($course);
         }
         return $course->id;
     }
@@ -204,19 +242,18 @@ class sync_up_enrolments_service extends service {
     }
 
 
-    function get_enrolment_config($courseid, $type, $name)  {
-        $role_id = config("default_{$type}_role_id");
-        $enrol_type = config("default_{$type}_enrol_type");
-        $customchar1 = $type=='inactivated_student' ? 'inactivated_student' : NULL;
+    function get_enrolment_config($courseid, $type)  {
+        $roleid = config("default_{$type}_role_id");
+        $enrol = config("default_{$type}_enrol_type");
         
-        $enrol_id = create_or_update(
+        $enrolid = create_or_update(
             'enrol', 
-            ['courseid'=>$courseid, 'roleid'=>$role_id, 'enrol'=>$enrol_type, 'customchar1'=>$customchar1],
-            ['timemodified'=>time(), 'name'=>$name, 'status'=>$type=='inactivated_student'],
+            ['courseid'=>$courseid, 'roleid'=>$roleid, 'enrol'=>$enrol],
+            ['timemodified'=>time()],
             ['timecreated'=>time()],
             [],
         )->id;
-        return (object)['roleid'=>$role_id, 'enrol_type'=>$enrol_type, 'enrolid'=>$enrol_id];
+        return (object)['roleid'=>$roleid, 'enrol_type'=>$enrol, 'enrolid'=>$enrolid];
     }
 
 
@@ -277,6 +314,7 @@ class sync_up_enrolments_service extends service {
 
 
     function sync_enrol($contextid, $userid, $enrolid, $roleid, $situacao){
+        global $DB;
         $n = time();
         $user_enrolments = get_or_create(
             'user_enrolments',
@@ -284,10 +322,13 @@ class sync_up_enrolments_service extends service {
             []
         );
 
+
         create_or_update(
             'user_enrolments', 
             ['userid'=>$userid, 'enrolid'=>$enrolid],
-            ['timecreated'=>$n, 'timemodified'=>$n, 'timestart'=>$n, 'timeend'=>0, 'modifierid'=>$userid, 'status'=>$situacao != 'ativo']
+            ['timemodified'=>$n, 'modifierid'=>$userid, 'status'=>$situacao != 'ativo'],
+            [],
+            ['timecreated'=>$n, 'timestart'=>$n, 'timeend'=>0],
         );
 
         get_or_create(

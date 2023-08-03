@@ -42,6 +42,7 @@ class suap_admin_settingspage extends admin_settingpage {
     function setup($admin_mode) {
         global $CFG;
         if ($admin_mode) {
+            $default_enrol = is_dir(dirname(__FILE__) . '/../../enrol/suap/') ? 'suap' : 'manual';
             $this->add_heading('auth_token_header');
             $this->add_configtext("auth_token", 'changeme');
 
@@ -55,18 +56,19 @@ class suap_admin_settingspage extends admin_settingpage {
 
             $this->add_configtext("default_student_auth", 'oauth2');
             $this->add_configtext("default_student_role_id", 5);
-            $this->add_configtext("default_student_enrol_type", 'manual');
-
-            $this->add_configtext("default_inactivated_student_role_id", 5);
-            $this->add_configtext("default_inactivated_student_enrol_type", 'manual');
+            $this->add_configtext("default_student_enrol_type", $default_enrol);
 
             $this->add_configtext("default_teacher_auth", 'oauth2');
             $this->add_configtext("default_teacher_role_id", 3);
-            $this->add_configtext("default_teacher_enrol_type", 'manual');
+            $this->add_configtext("default_teacher_enrol_type", $default_enrol);
 
             $this->add_configtext("default_assistant_auth", 'oauth2');
             $this->add_configtext("default_assistant_role_id", 4);
-            $this->add_configtext("default_assistant_enrol_type", 'manual');
+            $this->add_configtext("default_assistant_enrol_type", $default_enrol);
+
+            $this->add_configtext("default_instructor_auth", 'oauth2');
+            $this->add_configtext("default_instructor_role_id", 4);
+            $this->add_configtext("default_instructor_enrol_type", $default_enrol);
 
             // $authplugin = get_auth_plugin('suap');
             // display_auth_lock_options($authplugin->authtype, $authplugin->userfields, get_string('auth_fieldlocks_help', 'auth'), false, false);

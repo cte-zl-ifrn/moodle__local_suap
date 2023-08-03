@@ -81,3 +81,10 @@ $string["default_assistant_role_id"] = 'Default roleid for a new assistant enrol
 $string["default_assistant_role_id_desc"] = 'Normally 3. Why? This is the Moodle default.';
 $string["default_assistant_enrol_type"] = 'Default enrol_type for a new assistant enrolment';
 $string["default_assistant_enrol_type_desc"] = 'Normally manual. Why? Because new assistants will be enrolled -manually- on SUAP and synched to Moodle';
+
+$string["default_instructor_auth"] = 'Default method authentication for new instructor users';
+$string["default_instructor_auth_desc"] = 'We recommend that you configure oAuth with SOAP, but... the choices are yours. But why oauth? Because your instructors can take advantage of the SSO and Painel AVA for SUAP.';
+$string["default_instructor_role_id"] = 'Default roleid for a new instructor enrolment';
+$string["default_instructor_role_id_desc"] = 'Normally 3. Why? This is the Moodle default.';
+$string["default_instructor_enrol_type"] = 'Default enrol_type for a new instructor enrolment';
+$string["default_instructor_enrol_type_desc"] = 'Normally manual. Why? Because new instructors will be enrolled -manually- on SUAP and synched to Moodle';
