@@ -3,7 +3,9 @@ namespace local_suap;
 
 require_once('../../../course/lib.php');
 require_once('../../../user/lib.php');
+require_once('../../../user/profile/lib.php');
 require_once('../../../group/lib.php');
+require_once("../../../lib/enrollib.php");
 require_once("../../../enrol/locallib.php");
 require_once("../../../enrol/externallib.php");
 require_once("../../../enrol/externallib.php");
@@ -50,53 +52,60 @@ class sync_up_enrolments_service extends service {
 
 
         $categoryid = $this->sync_category_hierarchy($json, $room);       
-        $courseid = $this->sync_course($categoryid, $json, $room);
-        $context = \context_course::instance($courseid);
+        $course = $this->sync_course($categoryid, $json, $room);
+        $context = \context_course::instance($course->id);
 
         $issuerid = $this->sync_suap_issuer();
 
-        $principal_config = $this->get_enrolment_config($courseid, ($room ? 'instructor' : 'teacher'));
-        $moderador_config = $this->get_enrolment_config($courseid, ($room ? 'instructor' : 'assistant'));
+        $principal_enrol = $this->get_enrolment_config($course, ($room ? 'instructor' : 'teacher'));
+        $moderador_enrol = $this->get_enrolment_config($course, ($room ? 'instructor' : 'assistant'));
         foreach ($json->professores as $professor) {
-            $userid = $this->sync_user($professor, $issuerid);
+            $user = $this->sync_user($professor, $issuerid);
             $tipo = strtolower($professor->tipo);
-            $docente_conf = ($tipo == 'principal' || $tipo == 'formador' ? $principal_config : $moderador_config);
-            $this->sync_enrol($context->id, $userid, $docente_conf->enrolid, $docente_conf->roleid, "ativo");
+            $enrol_info = ($tipo == 'principal' || $tipo == 'formador' ? $principal_enrol : $moderador_enrol);
+            $this->sync_enrol($context, $enrol_info->enrol, $enrol_info->enrol_instance, $enrol_info->roleid, $user, \ENROL_USER_ACTIVE);
         }
 
-        $aluno_config = $this->get_enrolment_config($courseid, 'student');
-        $alunos_inativos = [];
+        $aluno_enrol = $this->get_enrolment_config($course, 'student');
         $alunos_sincronizados = [];
+        $alunos_suspensos = [];
         foreach ($json->alunos as $aluno) {
-            $userid = $this->sync_user($aluno, $issuerid);
-            $this->sync_enrol($context->id, $userid, $aluno_config->enrolid, $aluno_config->roleid, $aluno->situacao);
-            $this->sync_group($courseid, $userid, $aluno->matricula, $aluno->polo, $json->turma, $room);
-            if ($aluno->situacao != 'ativo') {
-                $alunos_inativos[] = $userid;
+            $user = $this->sync_user($aluno, $issuerid);
+            $situacao_diario = property_exists($aluno, "situacao_diario") ? $aluno->situacao_diario : "Ativo";
+            $status = strtolower($situacao_diario) == 'ativo' ? \ENROL_USER_ACTIVE : \ENROL_USER_SUSPENDED;
+            $this->sync_enrol($context, $aluno_enrol->enrol, $aluno_enrol->enrol_instance, $aluno_enrol->roleid, $user, $status);
+
+            // Ativa/inativa na sala de coordenação conforme matrícula no curso
+            if ($room) {
+                $status = $user->suspended ? \ENROL_USER_SUSPENDED : \ENROL_USER_ACTIVE;
+                $aluno_enrol->enrol->update_user_enrol($aluno_enrol->enrol_instance, $user->id, $status);
             }
-            $alunos_sincronizados[] = $userid;
+
+            $groups = [
+                substr($user->username, 0, 5), // Entrada YYYYS
+                $json->turma->codigo, // Turma
+            ];
+
+            if (property_exists($aluno, "polo") && property_exists($aluno->polo, "descricao")) {
+                $groups[] = $aluno->polo->descricao;
+            }
+            if (property_exists($aluno, "programa") && property_exists($aluno->programa, "descricao")) {
+                $groups[] = $aluno->programa->descricao;
+            }
+            
+            $this->sync_groups($course->id, $user, $groups);
+            $alunos_sincronizados[] = $user->id;
         }
 
-        
-        $key = "%extra%";
-        $sql_base = <<<"SQL"
-                UPDATE  {user_enrolments}
-                SET     status = ?
-                WHERE   id IN (
-                                SELECT   ue.id
-                                FROM     {user_enrolments} ue
-                                             INNER JOIN {enrol} e ON (ue.enrolid=e.id AND e.courseid=$courseid)
-                                WHERE    e.roleid = $aluno_config->roleid %extra%
-                              )
-        SQL;
-        [$insql, $inparams] = $DB->get_in_or_equal($alunos_sincronizados);
-        
-        // Inativa todos os alunos, no diário e coordenação
-        $DB->execute(str_replace($key, "",  $sql_base), [1]);
-
-        // Ativa apenas os que estão vindo na sincronização, no diário e coordenação
-        $DB->execute(str_replace($key, "AND ue.userid $insql", $sql_base), array_merge([0], $inparams));
-        return $courseid;
+        // Inativa no diário os ALUNOS que não vieram na sicronização
+        if (!$room) {
+            foreach ($DB->get_records_sql("SELECT ra.userid FROM {role_assignments} ra WHERE ra.roleid = {$aluno_enrol->roleid} AND ra.contextid={$context->id}") as $userid => $ra) {
+                if (!in_array($userid, $alunos_sincronizados)) {
+                    $aluno_enrol->enrol->update_user_enrol($aluno_enrol->enrol_instance, $userid, \ENROL_USER_SUSPENDED);
+                }
+            }
+        }
+        return $course->id;
     }
 
 
@@ -205,7 +214,7 @@ class sync_up_enrolments_service extends service {
             $course->shortname = $diario_code_long;
             update_course($course);
         }
-        return $course->id;
+        return $course;
     }
 
 
@@ -241,19 +250,31 @@ class sync_up_enrolments_service extends service {
         )->id;
     }
 
+    function get_enrol_instance($course, $enrol_type) {
+        $enrol_instance = null;
+        foreach (\enrol_get_instances($course->id, FALSE) as $i) {
+            if ($i->enrol == $enrol_type) {
+                $enrol_instance = $i;
+            }
+        }
+        return $enrol_instance;
+    }
 
-    function get_enrolment_config($courseid, $type)  {
+    function get_enrolment_config($course, $type)  {
         $roleid = config("default_{$type}_role_id");
-        $enrol = config("default_{$type}_enrol_type");
-        
-        $enrolid = create_or_update(
-            'enrol', 
-            ['courseid'=>$courseid, 'roleid'=>$roleid, 'enrol'=>$enrol],
-            ['timemodified'=>time()],
-            ['timecreated'=>time()],
-            [],
-        )->id;
-        return (object)['roleid'=>$roleid, 'enrol_type'=>$enrol, 'enrolid'=>$enrolid];
+        $enrol_type = config("default_{$type}_enrol_type");
+        $enrol = enrol_get_plugin($enrol_type);
+        $enrol_instance = $this->get_enrol_instance($course, $enrol_type);
+        if ($enrol_instance == null) {
+            $enrol->add_instance($course);
+            $enrol_instance = $this->get_enrol_instance($course, $enrol_type);
+        }
+        return (object)[
+            'roleid'=>$roleid,
+            'enrol_type'=>$enrol_type,
+            'enrol'=>$enrol,
+            'enrol_instance'=>$enrol_instance,
+        ];
     }
 
 
@@ -279,7 +300,7 @@ class sync_up_enrolments_service extends service {
             'lastname'=>implode(' ', array_slice($nome_parts, 1)),
             'auth'=>config($auth),
             'email'=> !empty($user->email) ? $user->email : $user->email_secundario,
-            'suspended'=>($status == 'ativo' ? 0 : 1),
+            'suspended'=>(strtolower($status) == 'ativo' ? 0 : 1),
         ];
         $insert_only = [
             'username'=>$username,
@@ -292,62 +313,63 @@ class sync_up_enrolments_service extends service {
 
         if (!$usuario) {
             $userid = \user_create_user(array_merge($common, $insert_only));
+            $usuario = $DB->get_record("user", ["username" => $username]);
         } else {
             \user_update_user(array_merge(['id'=>$usuario->id], $common));
             $userid = $usuario->id;
+            
         }
 
-        $default_user_preferences = preg_split('/\r\n|\r|\n/', config('default_user_preferences'));
-        foreach ($default_user_preferences as $preference) {
-            $parts = explode("=", $preference);
-            create_or_update('user_preferences', ['userid'=>$userid, 'name'=>$parts[0]], ['value'=>$parts[1]]);
+        if (property_exists($user, 'programa')) {
+            \profile_save_custom_fields(
+                $userid,
+                [
+                    'programa_id' => property_exists($user->programa, 'id') ? $user->programa->id : null,
+                    'programa_nome' => property_exists($user->programa, 'descricao') ? $user->programa->descricao : null
+                ]
+            );
         }
+
+        if (property_exists($user, 'polo')) {
+            \profile_save_custom_fields(
+                $userid,
+                [
+                    'polo_id' => property_exists($user->polo, 'id') ? $user->polo->id : null,
+                    'polo_nome' => property_exists($user->polo, 'descricao') ? $user->polo->descricao : null
+                ]
+            );
+        }
+
+        foreach (preg_split('/\r\n|\r|\n/', config('default_user_preferences')) as $preference) {
+            $parts = explode("=", $preference);
+            \set_user_preference($parts[0], $parts[1], $user);
+        }
+
         create_or_update(
-            'auth_oauth2_linked_login', 
+            'auth_oauth2_linked_login',
             ['userid'=>$userid, 'issuerid'=>$issuerid, 'username'=>$username],
             ['email'=> !empty($user->email) ? $user->email : $user->email_secundario, 'timecreated'=>time(), 'usermodified'=>0, 'confirmtoken'=>'', 'confirmtokenexpires'=>0, 'timemodified'=>time()],
             ['timemodified'=>time()]
         );
         
-        return $userid;
+        return $usuario;
     }
 
 
-    function sync_enrol($contextid, $userid, $enrolid, $roleid, $situacao){
+    function sync_enrol($context, $enrol, $instance, $roleid, $user, $status) {
         global $DB;
-        $n = time();
-        $user_enrolments = get_or_create(
-            'user_enrolments',
-            ['userid'=>$userid, 'enrolid'=>$enrolid], 
-            []
-        );
 
-
-        create_or_update(
-            'user_enrolments', 
-            ['userid'=>$userid, 'enrolid'=>$enrolid],
-            ['timemodified'=>$n, 'modifierid'=>$userid, 'status'=>$situacao != 'ativo'],
-            [],
-            ['timecreated'=>$n, 'timestart'=>$n, 'timeend'=>0],
-        );
-
-        get_or_create(
-            'role_assignments',
-            ['userid'=>$userid, 'contextid'=>$contextid, 'roleid'=>$roleid],
-            ['timemodified'=>$n, 'modifierid'=>$userid]
-        );
-    }
-
-
-    function sync_group($courseid, $userid, $username, $polo, $turma, $room) {
-        global $DB;
-        if (empty($polo)) {
+        if (is_enrolled($context, $user)) {
+            $enrol->update_user_enrol($instance, $user->id, $status);
             return;
+        } else {
+            $enrol->enrol_user($instance, $user->id, $roleid, time(), 0, $status);
         }
-        $entrada = substr($username, 0, 5);
-        $polo_array = gettype($polo) == 'integer' ? [] : [$polo->descricao];
+    }
 
-        $groups = array_merge($polo_array, $room ? [$turma->codigo, $entrada] : []);
+
+    function sync_groups($courseid, $user, $groups) {
+        global $DB;
         foreach ($groups as $groupname) {
             $group_name = (!empty($groupname)) ? $groupname : '--Sem pólo--';
             $data = ['courseid' => $courseid, 'name' => $group_name];
@@ -356,8 +378,8 @@ class sync_up_enrolments_service extends service {
                 \groups_create_group((object)$data);
                 $group = $DB->get_record('groups', $data);
             }
-            if (!$DB->get_record('groups_members', ['groupid' => $group->id, 'userid' => $userid])) {
-                \groups_add_member($group->id, $userid);
+            if (!$DB->get_record('groups_members', ['groupid' => $group->id, 'userid' => $user->id])) {
+                \groups_add_member($group->id, $user->id);
             }
         }
     }

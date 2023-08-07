@@ -103,14 +103,17 @@ function suap_bulk_user_custom_field() {
     suap_save_user_custom_field($cid, 'turma_id', 'ID da turma');
     suap_save_user_custom_field($cid, 'turma_codigo', 'Código da turma');
     
-    suap_save_user_custom_field($cid, 'polo_id', 'ID do polo');
-    suap_save_user_custom_field($cid, 'polo_nome', 'Nome do polo');
+    suap_save_user_custom_field($cid, 'polo_id', 'ID do pólo');
+    suap_save_user_custom_field($cid, 'polo_nome', 'Nome do pólo');
     
     suap_save_user_custom_field($cid, 'ingresso_periodo', 'Período de ingresso');
 
     suap_save_user_custom_field($cid, 'nome_apresentacao', 'Nome de apresentação');
     suap_save_user_custom_field($cid, 'nome_completo', 'Nome completo');
     suap_save_user_custom_field($cid, 'nome_social', 'Nome social');
+
+    suap_save_user_custom_field($cid, 'programa_nome', 'Nome do programa');
+    suap_save_user_custom_field($cid, 'programa_id', 'ID do programa');
 }
 
 function local_suap_migrate($oldversion) {
