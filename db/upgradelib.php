@@ -113,7 +113,8 @@ function suap_bulk_user_custom_field() {
     suap_save_user_custom_field($cid, 'nome_social', 'Nome social');
 
     suap_save_user_custom_field($cid, 'programa_nome', 'Nome do programa');
-    suap_save_user_custom_field($cid, 'programa_id', 'ID do programa');
+
+    suap_save_user_custom_field($cid, 'last_login', 'JSON do último login', 'textarea', 0);
 }
 
 function local_suap_migrate($oldversion) {
