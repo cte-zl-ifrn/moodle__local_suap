@@ -89,8 +89,10 @@ class sync_up_enrolments_service extends service {
             if (property_exists($aluno, "polo") && property_exists($aluno->polo, "descricao")) {
                 $groups[] = $aluno->polo->descricao;
             }
-            if (property_exists($aluno, "programa") && property_exists($aluno->programa, "descricao")) {
-                $groups[] = $aluno->programa->descricao;
+            if (isset($aluno->programa) || isset($aluno->programa) && $aluno->programa == null) {
+                $groups[] = $aluno->programa;
+            }else{
+                $groups[] = "Institucional";
             }
             
             $this->sync_groups($course->id, $user, $groups);
@@ -320,15 +322,12 @@ class sync_up_enrolments_service extends service {
             
         }
 
-        if (property_exists($user, 'programa')) {
-            \profile_save_custom_fields(
-                $userid,
-                [
-                    'programa_id' => property_exists($user->programa, 'id') ? $user->programa->id : null,
-                    'programa_nome' => property_exists($user->programa, 'descricao') ? $user->programa->descricao : null
-                ]
-            );
-        }
+        \profile_save_custom_fields(
+            $userid,
+            [
+                'programa_nome' => isset($user->programa) ? $user->programa : "Institucional"
+            ]
+        );
 
         if (property_exists($user, 'polo')) {
             \profile_save_custom_fields(
