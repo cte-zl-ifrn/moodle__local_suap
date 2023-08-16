@@ -3,6 +3,7 @@ namespace local_suap;
 
 require_once('../../../course/lib.php');
 require_once('../../../user/lib.php');
+require_once('../../../cohort/lib.php');
 require_once('../../../user/profile/lib.php');
 require_once('../../../group/lib.php');
 require_once("../../../lib/enrollib.php");
@@ -18,12 +19,13 @@ class sync_up_enrolments_service extends service {
 
     function do_call() {
         global $CFG;
-        
         $json = $this->validate_json();
         
         $diario_id = $this->sync_struct($json, false);
         
         $sala_id = $this->sync_struct($json, true);
+
+        $this->sync_cohort($json);
         
         $prefix = "{$CFG->wwwroot}/course/view.php";
         return ["url" => "$prefix?id={$diario_id}", "url_sala_coordenacao" => "$prefix?id={$sala_id}"];
@@ -49,64 +51,71 @@ class sync_up_enrolments_service extends service {
 
     function sync_struct($json, $room=false) {
         global $CFG, $DB;
-
-
+ 
         $categoryid = $this->sync_category_hierarchy($json, $room);       
         $course = $this->sync_course($categoryid, $json, $room);
+        
         $context = \context_course::instance($course->id);
-
         $issuerid = $this->sync_suap_issuer();
+        
+        if (isset($json->professores)) {
+            $principal_enrol = $this->get_enrolment_config($course, ($room ? 'instructor' : 'teacher'));
+            $moderador_enrol = $this->get_enrolment_config($course, ($room ? 'instructor' : 'assistant'));
 
-        $principal_enrol = $this->get_enrolment_config($course, ($room ? 'instructor' : 'teacher'));
-        $moderador_enrol = $this->get_enrolment_config($course, ($room ? 'instructor' : 'assistant'));
-        foreach ($json->professores as $professor) {
-            $user = $this->sync_user($professor, $issuerid);
-            $tipo = strtolower($professor->tipo);
-            $enrol_info = ($tipo == 'principal' || $tipo == 'formador' ? $principal_enrol : $moderador_enrol);
-            $this->sync_enrol($context, $enrol_info->enrol, $enrol_info->enrol_instance, $enrol_info->roleid, $user, \ENROL_USER_ACTIVE);
+            foreach ($json->professores as $professor) {
+                $user = $this->sync_user($professor, $issuerid, $json);
+                $tipo = strtolower($professor->tipo);
+                $enrol_info = ($tipo == 'principal' || $tipo == 'formador' ? $principal_enrol : $moderador_enrol);
+                $this->sync_enrol($context, $enrol_info->enrol, $enrol_info->enrol_instance, $enrol_info->roleid, $user, \ENROL_USER_ACTIVE);
+            }
         }
 
-        $aluno_enrol = $this->get_enrolment_config($course, 'student');
-        $alunos_sincronizados = [];
-        $alunos_suspensos = [];
-        foreach ($json->alunos as $aluno) {
-            $user = $this->sync_user($aluno, $issuerid);
-            $situacao_diario = property_exists($aluno, "situacao_diario") ? $aluno->situacao_diario : "Ativo";
-            $status = strtolower($situacao_diario) == 'ativo' ? \ENROL_USER_ACTIVE : \ENROL_USER_SUSPENDED;
-            $this->sync_enrol($context, $aluno_enrol->enrol, $aluno_enrol->enrol_instance, $aluno_enrol->roleid, $user, $status);
 
-            // Ativa/inativa na sala de coordenação conforme matrícula no curso
-            if ($room) {
-                $status = $user->suspended ? \ENROL_USER_SUSPENDED : \ENROL_USER_ACTIVE;
-                $aluno_enrol->enrol->update_user_enrol($aluno_enrol->enrol_instance, $user->id, $status);
+        if (isset($json->alunos)) {
+            $aluno_enrol = $this->get_enrolment_config($course, 'student');
+            $alunos_suspensos = [];
+            foreach ($json->alunos as $aluno) {
+                $user = $this->sync_user($aluno, $issuerid, $json);
+
+                $situacao_diario = property_exists($aluno, "situacao_diario") ? $aluno->situacao_diario : "Ativo";
+                $status = strtolower($situacao_diario) == 'ativo' ? \ENROL_USER_ACTIVE : \ENROL_USER_SUSPENDED;
+                
+                $this->sync_enrol($context, $aluno_enrol->enrol, $aluno_enrol->enrol_instance, $aluno_enrol->roleid, $user, $status);
+    
+                // Ativa/inativa na sala de coordenação conforme matrícula no curso
+                if ($room) {
+                    $status = $user->suspended ? \ENROL_USER_SUSPENDED : \ENROL_USER_ACTIVE;
+                    $aluno_enrol->enrol->update_user_enrol($aluno_enrol->enrol_instance, $user->id, $status);
+                }
+    
+                $groups = [
+                    substr($user->username, 0, 5), // Entrada YYYYS
+                    $json->turma->codigo, // Turma
+                ];
+    
+                if (property_exists($aluno, "polo") && property_exists($aluno->polo, "descricao")) {
+                    $groups[] = $aluno->polo->descricao;
+                }
+                if (isset($aluno->programa) || isset($aluno->programa) && $aluno->programa == null) {
+                    $groups[] = $aluno->programa;
+                }else{
+                    $groups[] = "Institucional";
+                }
+                
+                $this->sync_groups($course->id, $user, $groups);
+                $alunos_sincronizados[] = $user->id;
             }
 
-            $groups = [
-                substr($user->username, 0, 5), // Entrada YYYYS
-                $json->turma->codigo, // Turma
-            ];
-
-            if (property_exists($aluno, "polo") && property_exists($aluno->polo, "descricao")) {
-                $groups[] = $aluno->polo->descricao;
-            }
-            if (isset($aluno->programa) || isset($aluno->programa) && $aluno->programa == null) {
-                $groups[] = $aluno->programa;
-            }else{
-                $groups[] = "Institucional";
-            }
-            
-            $this->sync_groups($course->id, $user, $groups);
-            $alunos_sincronizados[] = $user->id;
-        }
-
-        // Inativa no diário os ALUNOS que não vieram na sicronização
-        if (!$room) {
-            foreach ($DB->get_records_sql("SELECT ra.userid FROM {role_assignments} ra WHERE ra.roleid = {$aluno_enrol->roleid} AND ra.contextid={$context->id}") as $userid => $ra) {
-                if (!in_array($userid, $alunos_sincronizados)) {
-                    $aluno_enrol->enrol->update_user_enrol($aluno_enrol->enrol_instance, $userid, \ENROL_USER_SUSPENDED);
+            // Inativa no diário os ALUNOS que não vieram na sicronização
+            if (!$room) {
+                foreach ($DB->get_records_sql("SELECT ra.userid FROM {role_assignments} ra WHERE ra.roleid = {$aluno_enrol->roleid} AND ra.contextid={$context->id}") as $userid => $ra) {
+                    if (!in_array($userid, $alunos_sincronizados)) {
+                        $aluno_enrol->enrol->update_user_enrol($aluno_enrol->enrol_instance, $userid, \ENROL_USER_SUSPENDED);
+                    }
                 }
             }
         }
+
         return $course->id;
     }
 
@@ -216,6 +225,8 @@ class sync_up_enrolments_service extends service {
             $course->shortname = $diario_code_long;
             update_course($course);
         }
+
+
         return $course;
     }
 
@@ -280,77 +291,48 @@ class sync_up_enrolments_service extends service {
     }
 
 
-    function sync_user($user, $issuerid){
+    function sync_user($user, $issuerid, $json){
         global $DB;
         $username = property_exists($user, 'matricula') ? $user->matricula : $user->login;
-        $status = property_exists($user, 'situacao') ? $user->situacao : $user->status;
+        $status = strtolower(property_exists($user, 'situacao') ? $user->situacao : $user->status);
+
         if (property_exists($user, 'matricula')) {
-            $auth = 'default_student_auth';
+            $auth = config('default_student_auth');
         } else {
             if ($user->tipo == 'Principal') {
-                $auth = 'default_teacher_auth';
+                $auth = config('default_teacher_auth');
             } else {
-                $auth = 'default_assistant_auth';
+                $auth = config('default_assistant_auth');
             }
         }
 
-        $usuario = $DB->get_record("user", ["username" => $username]);
-        $user->username = $username;
-        $nome_parts = explode(' ', $user->nome);
-        $common = [
-            'firstname'=>$nome_parts[0],
-            'lastname'=>implode(' ', array_slice($nome_parts, 1)),
-            'auth'=>config($auth),
-            'email'=> !empty($user->email) ? $user->email : $user->email_secundario,
-            'suspended'=>(strtolower($status) == 'ativo' ? 0 : 1),
-        ];
-        $insert_only = [
-            'username'=>$username,
-            'password'=>'!aA1' . uniqid(),
-            'timezone'=>'99',
-            // 'lang'=>'pt_br',
-            'confirmed'=>1,
-            'mnethostid'=>1,
-        ];
-
-        if (!$usuario) {
-            $userid = \user_create_user(array_merge($common, $insert_only));
-            $usuario = $DB->get_record("user", ["username" => $username]);
-        } else {
-            \user_update_user(array_merge(['id'=>$usuario->id], $common));
-            $userid = $usuario->id;
-            
-        }
-
-        \profile_save_custom_fields(
-            $userid,
-            [
-                'programa_nome' => isset($user->programa) ? $user->programa : "Institucional"
-            ]
+        $usuario = $this->create_or_update_user(
+            $username, 
+            !empty($user->email) ? $user->email : $user->email_secundario,
+            $user->nome,
+            ($status == 'ativo' ? 0 : 1),
+            $auth,
+            $issuerid
         );
 
+        $custom_fields = [
+            'programa_nome' => isset($user->programa) ? $user->programa : "Institucional",
+            'curso_descricao' => $json->curso->nome,
+            'curso_codigo' => $json->curso->codigo
+        ];
+
         if (property_exists($user, 'polo')) {
-            \profile_save_custom_fields(
-                $userid,
-                [
-                    'polo_id' => property_exists($user->polo, 'id') ? $user->polo->id : null,
-                    'polo_nome' => property_exists($user->polo, 'descricao') ? $user->polo->descricao : null
-                ]
-            );
+            $custom_fields['polo_id'] = property_exists($user->polo, 'id') ? $user->polo->id : null;
+            $custom_fields['polo_nome'] = property_exists($user->polo, 'descricao') ? $user->polo->descricao : null;
         }
+
+        \profile_save_custom_fields($usuario->id, $custom_fields);
 
         foreach (preg_split('/\r\n|\r|\n/', config('default_user_preferences')) as $preference) {
             $parts = explode("=", $preference);
             \set_user_preference($parts[0], $parts[1], $user);
         }
 
-        create_or_update(
-            'auth_oauth2_linked_login',
-            ['userid'=>$userid, 'issuerid'=>$issuerid, 'username'=>$username],
-            ['email'=> !empty($user->email) ? $user->email : $user->email_secundario, 'timecreated'=>time(), 'usermodified'=>0, 'confirmtoken'=>'', 'confirmtokenexpires'=>0, 'timemodified'=>time()],
-            ['timemodified'=>time()]
-        );
-        
         return $usuario;
     }
 
@@ -383,4 +365,83 @@ class sync_up_enrolments_service extends service {
         }
     }
 
+
+    function create_or_update_user($username, $email, $nome_completo, $suspended, $auth, $issuerid) {
+        global $DB;
+
+        $usuario = $DB->get_record("user", ["username" => $username]);
+
+        $nome_parts = explode(' ', $nome_completo);
+        $firstname = $nome_parts[0];
+        $lastname = implode(' ', array_slice($nome_parts, 1));
+        $insert_only = ['username'=>$username, 'password'=>'!aA1' . uniqid(), 'timezone'=>'99', 'confirmed'=>1, 'mnethostid'=>1];
+        $insert_or_update = ['firstname'=>$firstname, 'lastname'=>$lastname, 'auth'=>$auth, 'email'=> $email];
+        if ($suspended != null) {
+            $insert_or_update['suspended'] = $suspended;
+            $insert_only['suspended'] = 0;
+        }
+
+        if (!$usuario) {
+            $userid = \user_create_user(array_merge($insert_or_update, $insert_only));
+            $usuario = $DB->get_record("user", ["username" => $username]);
+        } else {
+            \user_update_user(array_merge(['id'=>$usuario->id], $insert_or_update));
+            $userid = $usuario->id;
+        }
+
+        create_or_update(
+            'auth_oauth2_linked_login',
+            ['userid'=>$userid, 'issuerid'=>$issuerid, 'username'=>$username],
+            ['email'=> $email, 'timecreated'=>time(), 'usermodified'=>0, 'confirmtoken'=>'', 'confirmtokenexpires'=>0, 'timemodified'=>time()],
+            ['timemodified'=>time()]
+        );
+        return $usuario;
+    }
+    
+    function sync_cohort($json){
+        global $DB;
+
+        if (!isset($json->coortes)) {
+            return;
+        }
+
+        $issuerid = $this->sync_suap_issuer();
+        $auth = config('default_assistant_auth');
+
+        foreach ($json->coortes as $coorte) {
+            $instance = $DB->get_record('cohort', ['idnumber'=>$coorte->idnumber]);
+
+            if (!$instance) {
+                $cohortid = \cohort_add_cohort((object)[
+                    "name"=>$coorte->nome,
+                    "idnumber"=>$coorte->idnumber,
+                    "description"=>$coorte->descricao,
+                    "visible"=>$coorte->ativo,
+                    "contextid"=>1,
+                    // "component"=>'local_suap',                    
+                ]);
+            } else {
+                $instance->name = $coorte->nome;
+                $instance->idnumber = $coorte->idnumber;
+                $instance->description = $coorte->descricao;
+                $instance->visible = $coorte->ativo;
+                \cohort_update_cohort($instance);
+                $cohortid = $instance->id;
+            }
+
+            if (isset($coorte->colaboradores)) {
+                foreach ($coorte->colaboradores as $colaborador) {
+                    $usuario = $this->create_or_update_user(
+                        $colaborador->username,
+                        $colaborador->email,
+                        $colaborador->nome_completo,
+                        !$colaborador->vinculo_ativo,
+                        $auth,
+                        $issuerid
+                    );
+                    \cohort_add_member($cohortid, $usuario->id);
+                }
+            }
+        }
+    }
 }
