@@ -9,7 +9,6 @@ require_once('../../../group/lib.php');
 require_once("../../../lib/enrollib.php");
 require_once("../../../enrol/locallib.php");
 require_once("../../../enrol/externallib.php");
-require_once("../../../enrol/externallib.php");
 require_once("../locallib.php");
 require_once("servicelib.php");
 
@@ -25,7 +24,7 @@ class sync_up_enrolments_service extends service {
         
         $sala_id = $this->sync_struct($json, true);
 
-        $this->sync_cohort($json);
+        $this->sync_cohort($json, true);
         
         $prefix = "{$CFG->wwwroot}/course/view.php";
         return ["url" => "$prefix?id={$diario_id}", "url_sala_coordenacao" => "$prefix?id={$sala_id}"];
@@ -398,8 +397,11 @@ class sync_up_enrolments_service extends service {
         return $usuario;
     }
     
-    function sync_cohort($json){
+    function sync_cohort($json, $room=false){
         global $DB;
+
+        $categoryid = $this->sync_category_hierarchy($json, $room);       
+        $course = $this->sync_course($categoryid, $json, $room);
 
         if (!isset($json->coortes)) {
             return;
@@ -442,6 +444,15 @@ class sync_up_enrolments_service extends service {
                     \cohort_add_member($cohortid, $usuario->id);
                 }
             }
+            
+            $groupid = 0;
+            $role = $DB->get_record('role', ['shortname'=>$coorte->role]);
+            $enrol = enrol_get_plugin("cohort");
+            $enrol_instance = $DB->get_record('enrol', ["enrol"=>"cohort", "customint1"=> $cohortid, "courseid"=>$course->id]);
+            if (!$enrol_instance) {
+                $enrol->add_instance($course, ["customint1"=>$cohortid, "roleid"=>$role->id, "customint2"=>$groupid]);
+            }     
         }
+
     }
 }
