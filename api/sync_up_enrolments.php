@@ -420,6 +420,7 @@ class sync_up_enrolments_service extends service {
                     "description"=>$coorte->descricao,
                     "visible"=>$coorte->ativo,
                     "contextid"=>1,
+                    "role"=>$coorte->role
                     // "component"=>'local_suap',                    
                 ]);
             } else {
@@ -427,8 +428,10 @@ class sync_up_enrolments_service extends service {
                 $instance->idnumber = $coorte->idnumber;
                 $instance->description = $coorte->descricao;
                 $instance->visible = $coorte->ativo;
+                $instance->role = $coorte->role;
                 \cohort_update_cohort($instance);
                 $cohortid = $instance->id;
+                
             }
 
             if (isset($coorte->colaboradores)) {
