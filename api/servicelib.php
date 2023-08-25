@@ -30,7 +30,7 @@ class service {
     }
 
     function call() {
-        // $this->authenticate();
+        $this->authenticate();
         echo json_encode($this->do_call());
     }
 
