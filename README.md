@@ -53,7 +53,7 @@ git push --tags
                 - `parent`=**campus_category.id**
             - Atualiza: **nada**
             - Exclui: **nunca**
-        4. Sincronizar a categoria do "Semestre"
+        4. Sincronizar a categoria do "Semestre", se Diário
             - Chave: `idnumber`=**curso.codigo + '.' + ano_periodo**
             - Insere:
                 - `idnumber`=**curso.codigo + '.' + ano_periodo**
@@ -61,7 +61,7 @@ git push --tags
                 - `parent`=**curso_category.id**
             - Atualiza: **nada**
             - Exclui: **nunca**
-        5. Sincronizar a categoria da "Turma"
+        5. Sincronizar a categoria da "Turma", se Diário
             - Chave: `idnumber`=**turma.codigo**
             - Insere:
                 - `idnumber`=**turma.codigo**
@@ -69,7 +69,7 @@ git push --tags
                 - `parent`=**semestre_category.id**
            - Atualiza: **nada**
            - Exclui: **nunca**
-        6. Retornar o ID da categoria da "Turma"
+        6. Retornar o ID da categoria da "Turma", se Diário, ou o ID da categoria do "Curso", se Coordenação
     2. Sincronizar o **Diário** na categoria da **Turma**
         - Chave: 
             - `idnumber`=**turma.codigo + '.' + componente.sigla + '#' + diario.id**. Se Diário
@@ -105,7 +105,7 @@ git push --tags
             - `customfield_disciplina_qtd_avaliacoes`=**componente.qtd_avaliacoes**. Se Diário
         - Atualiza: `shortname`=**turma.codigo + '.' + componente.sigla + '#' + diario.id**. Se Diário
         - Exclui: **nunca**
-    4. Sincronizar usuarios
+    3. Sincronizar usuarios
         1. Sincronizar usuário
             - Chave: `username`=**ifrnid**. Sendo que para servidores ou alunos é a matricula, para os demais é o CPF
             - Insere:
@@ -190,7 +190,7 @@ git push --tags
                 - `roleid`=**aluno_enrol.roleid || professor_enrol.roleid || tutor_enrol.roleid || docente_enrol.roleid**
                 - `status`=**aluno.situacao_diario == 'ativo'**. Apenas para alunos, os demais sempre `ENROL_USER_ACTIVE`
             - Exclui: **nunca**
-        5. Inativar os ALUNOS que não vieram na sicronização. Se Diário
+        5. Inativar os ALUNOS que não vieram na sicronização, se Diário
             - Chave:
                 - `roleid`=**aluno_enrol.roleid**
                 - `courseid`=**course.id**
@@ -202,7 +202,7 @@ git push --tags
                 - `userid`=**aluno.user.id**
                 - `status`=**ENROL_USER_SUSPENDED**
             - Exclui: **nunca**
-    5. Sincronizar coortes
+    4. Sincronizar coortes
         1. Sincronizar coorte
             - Chave: `idnumber`=**coorte.idnumber**
             - Insere:
@@ -257,4 +257,44 @@ git push --tags
             2. Adicionar colaborador à coorte. *se já existir dará certo?*
                 - `cohortid`=**cooote.id**
                 - `cohortid`=**colaborador.user.id**
-5. Retornar URL do Diário e URL da Sala de Coordenação
+4. Retornar URL do Diário e URL da Sala de Coordenação
+
+
+
+
+
+
+
+1. Validar JSON
+    1. Sucesso: O JSON veio
+    2. Sucesso: O JSON consegue ser decodificado com sucesso
+    3. Sucesso: O JSON está conforme o esquema (falta)
+2. Sincronizar o Issuer oAuth2 do SUAP (Mover isso pra ser feito no upgrade, aqui apenas pegaríamos o já existente)
+3. Sincronizar Diário e Sala de Coordenação
+    1. Sincronizar estrutura das categorias. 
+        1. Sincronizar a categoria "Diários"
+        2. Sincronizar a categoria do "Campus"
+        3. Sincronizar a categoria do "Curso"
+        4. Sincronizar a categoria do "Semestre", se Diário
+        5. Sincronizar a categoria da "Turma", se Diário
+        6. Retornar o ID da categoria da "Turma", se Diário, ou o ID da categoria do "Curso", se Coordenação
+    2. Sincronizar o **Diário** na categoria da **Turma** ou **Coordenação** na categoria da **Curso**
+    3. Sincronizar usuarios
+        1. Sincronizar usuário
+        2. Sincronizar grupos do usuário
+            1. Cada grupo será conforme
+            2. Sincronizar grupo (grupos: Entrada, Turma, Polo, Programa)
+            3. Sincronizar inscrição do usuário no grupo
+        2. Sincronizar usuário autenticação oAuth2
+        3. Sincronizar preferencias padrões do usuário
+        4. Sincronizar inscrição
+        5. Inativar os ALUNOS que não vieram na sicronização, se Diário
+    4. Sincronizar coortes
+        1. Sincronizar coorte
+        2. Sincronizar colaboradores da coorte
+            1. Sincronizar usuário
+            2. Adicionar colaborador à coorte. *se já existir dará certo?*
+        3. Sincroniza o enrol no curso
+            1. Sincronizar usuário
+            2. Adicionar colaborador à coorte. *se já existir dará certo?*
+4. Retornar URL do Diário e URL da Sala de Coordenação
