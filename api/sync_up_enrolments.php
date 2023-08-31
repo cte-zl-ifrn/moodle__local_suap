@@ -1,6 +1,8 @@
 <?php
 namespace local_suap;
 
+$jsonstring = file_get_contents('php://input');
+
 require_once('../../../course/lib.php');
 require_once('../../../user/lib.php');
 require_once('../../../cohort/lib.php');
@@ -10,55 +12,84 @@ require_once("../../../lib/enrollib.php");
 require_once("../../../enrol/locallib.php");
 require_once("../../../enrol/externallib.php");
 require_once("../locallib.php");
+require_once("../classes/Jsv4/Validator.php");
 require_once("servicelib.php");
-
 
 class sync_up_enrolments_service extends service {
 
     private $json;
+    private $suapIssuer;
+    private $diarioCategory;
+    private $campusCategory;
+    private $cursoCategory;
+    private $semestreCategory;
+    private $turmaCategory;
     private $context;
     private $course;
-    private $issuerid;
+    private $isRoom;
     private $aluno_enrol;
     private $professor_enrol;
     private $tutor_enrol;
     private $docente_enrol;
+    private $studentAuth;
+    private $teacherAuth;
+    private $assistantAuth;
+    private $default_user_preferences;
 
-
+    
     function do_call() {
         global $CFG;
         $prefix = "{$CFG->wwwroot}/course/view.php";
 
         $this->validate_json();
-        $this->issuerid = $this->sync_suap_issuer();
-        $this->professor_enrol = $this->get_enrolment_config($this->course, 'teacher');
-        $this->tutor_enrol = $this->get_enrolment_config($this->course, 'assistant');
-        $this->docente_enrol = $this->get_enrolment_config($this->course, 'instructor');
-        $this->aluno_enrol = $this->get_enrolment_config($this->course, 'student');
+        // $this->sync_suap_issuer();
+        // $this->sync_auths();
+        // $this->sync_users();
 
-        $diario_id = $this->sync_struct($this->json, false);
-        $sala_id = $this->sync_struct($this->json, true);
-        return ["url" => "$prefix?id={$diario_id}", "url_sala_coordenacao" => "$prefix?id={$sala_id}"];
+        // $this->sync_categories();
+
+        // $this->isRoom = false;
+        // $this->sync_course($this->cursoCategory->id);
+        // $diario_id = $this->course->id;
+        // $this->sync_enrols();
+        // $this->sync_docentes_enrol();
+        // $this->sync_discentes_enrol();
+        // $this->sync_cohorts();
+        
+        // $this->isRoom = true;
+        // $this->sync_course($this->cursoCategory->id);
+        // $sala_id = $this->course->id;
+        // $this->sync_docentes_enrol();
+        // $this->sync_discentes_enrol();
+
+        // return ["url" => "$prefix?id={$diario_id}", "url_sala_coordenacao" => "$prefix?id={$sala_id}"];
+        // return ["url" => "$prefix?id=0", "url_sala_coordenacao" => "$prefix?id=0"];
+        return ["url" => "0", "url_sala_coordenacao" => "0"];
     }
 
 
     function validate_json() {
-        if (!array_key_exists('jsonstring', $_POST)) {
-            throw new \Exception("Atributo \'jsonstring\' é obrigatório.", 550);
-        }
+        // if (!array_key_exists('jsonstring', $_POST)) {
+        //     throw new \Exception("Atributo \'jsonstring\' é obrigatório.", 550);
+        // }
 
-        $this->json = json_decode($_POST['jsonstring']);
+        // TODO: Validar o JSON usando um json-schema, mas só tem isso usando Composer
+        $schema = file_get_contents("../schemas/sync_up_enrolments.schema.json");
+        $validation = Validator::validate($jsonstring, $schema);
+        var_dump($validation);
+        die();
+
+        $this->json = json_decode($jsonstring);
 
         if (empty($this->json)) {
             throw new \Exception("Atributo 'jsonstring' sem JSON ou com JSON inválido.", 551);
         }
 
-        // TODO: Validar o JSON usando um json-schema, mas só tem isso usando Composer
     }
 
     
     function sync_suap_issuer() {
-        return create_or_update(
+        $this->suapIssuer = create_or_update(
             'oauth2_issuer', 
             [
                 'name'=>'suap'
@@ -86,25 +117,95 @@ class sync_up_enrolments_service extends service {
                 'clientid'=>'changeme',
                 'clientsecret'=>'changeme'
             ]
-        )->id;
+        );
     }
 
 
-    function sync_struct($room) {
+    function sync_auths(){
+        global $DB;
+
+        $this->studentAuth = config('default_student_auth');
+        $this->teacherAuth = config('default_teacher_auth');
+        $this->assistantAuth = config('default_assistant_auth');
+        $this->default_user_preferences = config('default_user_preferences');
+    }
+
+
+    function sync_users() {
         global $CFG, $DB;
- 
-        $categoryid = $this->sync_category_hierarchy($room);       
-        $this->course = $this->sync_course($categoryid, $room);
-        $this->sync_docentes($room);
-        $this->sync_discentes($room);
-        if (!$room) {
-            $this->sync_cohort($this->json->coortes);
+        
+        $professores = isset($this->json->professores) ? $this->json->professores : [];
+        $alunos = isset($this->json->alunos) ? $this->json->alunos : [];
+
+        foreach ($professores as $usuario) {
+            $usuario->isProfessor = True;
+            $usuario->isAluno = False;
         }
-        return $this->course->id;
+        
+        foreach ($alunos as $usuario) {
+            $usuario->isProfessor = False;
+            $usuario->isAluno = True;
+        }
+       
+        foreach (array_merge($professores, $alunos) as $usuario) {
+            $this->sync_user($usuario);
+        }
     }
 
 
-    function sync_category_hierarchy($ate_curso) {
+    function sync_user($usuario){
+        global $DB;
+
+        $username = $usuario->isAluno ? $usuario->matricula : $usuario->login;       
+        $email = !empty($usuario->email) ? $usuario->email : $usuario->email_secundario;
+        $suspended = (lower($usuario->isAluno ? $usuario->situacao : $usuario->status) == 'ativo' ? 0 : 1);
+
+        $nome_parts = explode(' ', $usuario->nome);
+        $firstname = $nome_parts[0];
+        $lastname = implode(' ', array_slice($nome_parts, 1));
+        
+        if ($usuario->isAluno) {
+            $auth = $this->studentAuth;
+        } else {
+            $auth = $usuario->tipo == 'Principal' ? $this->teacherAuth : $this->assistantAuth;
+        }
+        
+        $insert_only = ['username'=>$username, 'password'=>'!aA1' . uniqid(), 'timezone'=>'99', 'confirmed'=>1, 'mnethostid'=>1];
+        $insert_or_update = ['firstname'=>$firstname, 'lastname'=>$lastname, 'auth'=>$auth, 'email'=> $email, 'suspended' => ($suspended != null ? $suspended : 0)];
+
+        $usuario->user = $DB->get_record("user", ["username" => $username]);
+        if ($usuario->user) {
+            \user_update_user(array_merge(['id'=>$usuario->user->id], $insert_or_update));
+        } else {
+            \user_create_user(array_merge($insert_or_update, $insert_only));
+            $usuario->user = $DB->get_record("user", ["username" => $username]);
+            foreach (preg_split('/\r\n|\r|\n/', $this->default_user_preferences) as $preference) {
+                $parts = explode("=", $preference);
+                \set_user_preference($parts[0], $parts[1], $usuario);
+            }
+            get_or_create(
+                'auth_oauth2_linked_login',
+                ['userid'=>$usuario->user->id, 'issuerid'=>$this->suapIssuer->id, 'username'=>$username],
+                ['email'=> $email, 'timecreated'=>time(), 'usermodified'=>0, 'confirmtoken'=>'', 'confirmtokenexpires'=>0, 'timemodified'=>time()],
+            );
+        }
+
+        if ($usuario->isAluno) {
+            $custom_fields = [
+                'programa_nome' => isset($usuario->programa) ? $usuario->programa : "Institucional",
+                'curso_descricao' => $this->json->curso->nome,
+                'curso_codigo' => $this->json->curso->codigo
+            ];
+            if (property_exists($usuario, 'polo')) {
+                $custom_fields['polo_id'] = property_exists($usuario->polo, 'id') ? $usuario->polo->id : null;
+                $custom_fields['polo_nome'] = property_exists($usuario->polo, 'descricao') ? $usuario->polo->descricao : null;
+            }
+            \profile_save_custom_fields($usuario->user->id, $custom_fields);
+        }
+    }
+
+    
+    function sync_categories($ate_curso) {
         $top_category_idnumber = config('top_category_idnumber') ?: 'diarios'; 
         $top_category_name = config('top_category_name') ?: 'Diários';
         $top_category_parent = config('top_category_parent') ?: 0;
@@ -137,6 +238,7 @@ class sync_up_enrolments_service extends service {
     }
 
 
+    /*
     function sync_course($categoryid, $room){
         global $DB;
         
@@ -146,7 +248,8 @@ class sync_up_enrolments_service extends service {
         if (!$this->course) {
             $this->course = $DB->get_record('course', ['shortname'=>$diario_code_long]) ?: $DB->get_record('course', ['shortname'=>$diario_code]);
         }
-        
+
+
         if (!$this->course) {
             $data = [
                     "category"=>$categoryid,
@@ -210,34 +313,60 @@ class sync_up_enrolments_service extends service {
         }
 
         $this->context = \context_course::instance($this->course->id);
+    }
 
-        return $this->course;
+    
+    function sync_enrols() {
+        $this->professor_enrol = $this->get_enrolment_config($this->course, 'teacher');
+        $this->tutor_enrol = $this->get_enrolment_config($this->course, 'assistant');
+        $this->docente_enrol = $this->get_enrolment_config($this->course, 'instructor');
+        $this->aluno_enrol = $this->get_enrolment_config($this->course, 'student');
     }
 
 
-    function sync_docentes($room) {
-        if (!isset($this->json->professores)) {
-            return;
+    function get_enrolment_config($type)  {
+        $roleid = config("default_{$type}_role_id");
+        $enrol_type = config("default_{$type}_enrol_type");
+        $enrol = enrol_get_plugin($enrol_type);
+        $instance = $this->get_instance($enrol_type);
+        if ($instance == null) {
+            $enrol->add_instance($this->course);
+            $instance = $this->get_instance($enrol_type);
         }
+        return (object)['roleid'=>$roleid, 'enrol_type'=>$enrol_type, 'enrol'=>$enrol, 'instance'=>$instance];
+    }
 
+
+    function get_instance($enrol_type) {
+        foreach (\enrol_get_instances($this->course->id, FALSE) as $i) {
+            if ($i->enrol == $enrol_type) {
+                return $i;
+            }
+        }
+        return null;
+    }
+
+
+    function sync_docentes_enrol() {
         global $CFG, $DB;
 
-        foreach ($this->json->professores as $professor) {
-            if ($room) {
-                $enrol = $this->docente_enrol;
-            } elseif (in_array(strtolower($professor->tipo), ['principal', 'formador']))  {
-                $enrol = $this->professor_enrol;
-            } else {
-                $enrol = $this->tutor_enrol;
+        if (isset($this->json->professores)) {
+            foreach ($this->json->professores as $professor) {
+                if ($this->room) {
+                    $enrol = $this->docente_enrol;
+                } elseif (in_array(strtolower($professor->tipo), ['principal', 'formador']))  {
+                    $enrol = $this->professor_enrol;
+                } else {
+                    $enrol = $this->tutor_enrol;
+                }
+                
+                $this->sync_enrol($enrol, $professor, \ENROL_USER_ACTIVE);
             }
-            
-            $this->sync_user($professor);
-            $this->sync_enrol($enrol, $professor, \ENROL_USER_ACTIVE);
         }
     }
 
 
-    function sync_discentes($room=false) {
+    function sync_discentes_enrol($room=false) {
         global $CFG, $DB;
         if (!isset($this->json->alunos)) {
             return;
@@ -285,82 +414,6 @@ class sync_up_enrolments_service extends service {
         }
     }
 
-
-    function sync_user($usuario){
-        global $DB;
-        $ifrnid = property_exists($usuario, 'matricula') ? $usuario->matricula : $usuario->login;
-        $status = strtolower(property_exists($usuario, 'situacao') ? $usuario->situacao : $usuario->status);
-
-        if (property_exists($usuario, 'matricula')) {
-            $auth = config('default_student_auth');
-        } else {
-            if ($usuario->tipo == 'Principal') {
-                $auth = config('default_teacher_auth');
-            } else {
-                $auth = config('default_assistant_auth');
-            }
-        }
-
-        $usuario->user = $this->create_or_update_user(
-            $ifrnid, 
-            !empty($usuario->email) ? $usuario->email : $usuario->email_secundario,
-            $usuario->nome,
-            ($status == 'ativo' ? 0 : 1),
-            $auth
-        );
-
-        $custom_fields = [
-            'programa_nome' => isset($usuario->programa) ? $usuario->programa : "Institucional",
-            'curso_descricao' => $this->json->curso->nome,
-            'curso_codigo' => $this->json->curso->codigo
-        ];
-
-        if (property_exists($usuario, 'polo')) {
-            $custom_fields['polo_id'] = property_exists($usuario->polo, 'id') ? $usuario->polo->id : null;
-            $custom_fields['polo_nome'] = property_exists($usuario->polo, 'descricao') ? $usuario->polo->descricao : null;
-        }
-
-        \profile_save_custom_fields($usuario->user->id, $custom_fields);
-
-        foreach (preg_split('/\r\n|\r|\n/', config('default_user_preferences')) as $preference) {
-            $parts = explode("=", $preference);
-            \set_user_preference($parts[0], $parts[1], $usuario);
-        }
-    }
-
-
-    function create_or_update_user($username, $email, $nome_completo, $suspended, $auth) {
-        global $DB;
-
-        $usuario = $DB->get_record("user", ["username" => $username]);
-
-        $nome_parts = explode(' ', $nome_completo);
-        $firstname = $nome_parts[0];
-        $lastname = implode(' ', array_slice($nome_parts, 1));
-        $insert_only = ['username'=>$username, 'password'=>'!aA1' . uniqid(), 'timezone'=>'99', 'confirmed'=>1, 'mnethostid'=>1];
-        $insert_or_update = ['firstname'=>$firstname, 'lastname'=>$lastname, 'auth'=>$auth, 'email'=> $email];
-        if ($suspended != null) {
-            $insert_or_update['suspended'] = $suspended;
-        } else {
-            $insert_or_update['suspended'] = 0;
-        }
-
-        if (!$usuario) {
-            $userid = \user_create_user(array_merge($insert_or_update, $insert_only));
-            $usuario = $DB->get_record("user", ["username" => $username]);
-        } else {
-            \user_update_user(array_merge(['id'=>$usuario->id], $insert_or_update));
-            $userid = $usuario->id;
-        }
-
-        get_or_create(
-            'auth_oauth2_linked_login',
-            ['userid'=>$userid, 'issuerid'=>$this->issuerid, 'username'=>$username],
-            ['email'=> $email, 'timecreated'=>time(), 'usermodified'=>0, 'confirmtoken'=>'', 'confirmtokenexpires'=>0, 'timemodified'=>time()],
-        );
-        return $usuario;
-    }
-
     
     function sync_enrol($enrol, $usuario, $status) {
         if (is_enrolled($this->context, $usuario->user)) {
@@ -369,30 +422,6 @@ class sync_up_enrolments_service extends service {
             $enrol->enrol->enrol_user($enrol->instance, $usuario->user->id, $enrol->roleid, time(), 0, $status);
         }
     }
-
-
-    function get_enrolment_config($type)  {
-        $roleid = config("default_{$type}_role_id");
-        $enrol_type = config("default_{$type}_enrol_type");
-        $enrol = enrol_get_plugin($enrol_type);
-        $instance = $this->get_instance($enrol_type);
-        if ($instance == null) {
-            $enrol->add_instance($this->course);
-            $instance = $this->get_instance($enrol_type);
-        }
-        return (object)['roleid'=>$roleid, 'enrol_type'=>$enrol_type, 'enrol'=>$enrol, 'instance'=>$instance];
-    }
-
-
-    function get_instance($enrol_type) {
-        foreach (\enrol_get_instances($this->course->id, FALSE) as $i) {
-            if ($i->enrol == $enrol_type) {
-                return $i;
-            }
-        }
-        return null;
-    }
-
 
     function sync_groups($usuario, $groups) {
         global $DB;
@@ -409,54 +438,90 @@ class sync_up_enrolments_service extends service {
             }
         }
     }
+    */
 
-    
-    function sync_cohort($coortes){
-        global $DB;
-        
-        $auth = config('default_assistant_auth');
+    /*
 
-        foreach ($coortes as $coorte) {
-            $instance = $DB->get_record('cohort', ['idnumber'=>$coorte->idnumber]);
+        function create_or_update_user($username, $email, $nome_completo, $suspended, $auth) {
+            global $DB;
 
-            if (!$instance) {
-                $cohortid = \cohort_add_cohort((object)[
-                    "name"=>$coorte->nome,
-                    "idnumber"=>$coorte->idnumber,
-                    "description"=>$coorte->descricao,
-                    "visible"=>$coorte->ativo,
-                    "contextid"=>1,
-                ]);
+            $usuario = $DB->get_record("user", ["username" => $username]);
+
+            $nome_parts = explode(' ', $nome_completo);
+            $firstname = $nome_parts[0];
+            $lastname = implode(' ', array_slice($nome_parts, 1));
+            $insert_only = ['username'=>$username, 'password'=>'!aA1' . uniqid(), 'timezone'=>'99', 'confirmed'=>1, 'mnethostid'=>1];
+            $insert_or_update = ['firstname'=>$firstname, 'lastname'=>$lastname, 'auth'=>$auth, 'email'=> $email];
+            if ($suspended != null) {
+                $insert_or_update['suspended'] = $suspended;
             } else {
-                $instance->name = $coorte->nome;
-                $instance->idnumber = $coorte->idnumber;
-                $instance->description = $coorte->descricao;
-                $instance->visible = $coorte->ativo;
-                \cohort_update_cohort($instance);
-                $cohortid = $instance->id;
+                $insert_or_update['suspended'] = 0;
             }
 
-            if (isset($coorte->colaboradores)) {
-                foreach ($coorte->colaboradores as $colaborador) {
-                    $usuario = $this->create_or_update_user(
-                        $colaborador->username,
-                        $colaborador->email,
-                        $colaborador->nome_completo,
-                        !$colaborador->vinculo_ativo,
-                        $auth
-                    );
-                    \cohort_add_member($cohortid, $usuario->id);
-                }
+            if (!$usuario) {
+                $userid = \user_create_user(array_merge($insert_or_update, $insert_only));
+                $usuario = $DB->get_record("user", ["username" => $username]);
+            } else {
+                \user_update_user(array_merge(['id'=>$usuario->id], $insert_or_update));
+                $userid = $usuario->id;
             }
-            
-            $groupid = 0;
-            $role = $DB->get_record('role', ['shortname'=>$coorte->role]);
-            $enrol = enrol_get_plugin("cohort");
-            $instance = $DB->get_record('enrol', ["enrol"=>"cohort", "customint1"=> $cohortid, "courseid"=>$this->course->id]);
-            if (!$instance) {
-                $enrol->add_instance($this->course, ["customint1"=>$cohortid, "roleid"=>$role->id, "customint2"=>$groupid]);
-            }     
+
+            get_or_create(
+                'auth_oauth2_linked_login',
+                ['userid'=>$userid, 'issuerid'=>$this->issuerid, 'username'=>$username],
+                ['email'=> $email, 'timecreated'=>time(), 'usermodified'=>0, 'confirmtoken'=>'', 'confirmtokenexpires'=>0, 'timemodified'=>time()],
+            );
+            return $usuario;
         }
 
-    }
+        
+        function sync_cohorts(){
+            global $DB;
+            
+            $auth = config('default_assistant_auth');
+
+            foreach ($this->json->coortes as $coorte) {
+                $instance = $DB->get_record('cohort', ['idnumber'=>$coorte->idnumber]);
+
+                if (!$instance) {
+                    $cohortid = \cohort_add_cohort((object)[
+                        "name"=>$coorte->nome,
+                        "idnumber"=>$coorte->idnumber,
+                        "description"=>$coorte->descricao,
+                        "visible"=>$coorte->ativo,
+                        "contextid"=>1,
+                    ]);
+                } else {
+                    $instance->name = $coorte->nome;
+                    $instance->idnumber = $coorte->idnumber;
+                    $instance->description = $coorte->descricao;
+                    $instance->visible = $coorte->ativo;
+                    \cohort_update_cohort($instance);
+                    $cohortid = $instance->id;
+                }
+
+                if (isset($coorte->colaboradores)) {
+                    foreach ($coorte->colaboradores as $colaborador) {
+                        $usuario = $this->create_or_update_user(
+                            $colaborador->username,
+                            $colaborador->email,
+                            $colaborador->nome_completo,
+                            !$colaborador->vinculo_ativo,
+                            $auth
+                        );
+                        \cohort_add_member($cohortid, $usuario->id);
+                    }
+                }
+                
+                $groupid = 0;
+                $role = $DB->get_record('role', ['shortname'=>$coorte->role]);
+                $enrol = enrol_get_plugin("cohort");
+                $instance = $DB->get_record('enrol', ["enrol"=>"cohort", "customint1"=> $cohortid, "courseid"=>$this->course->id]);
+                if (!$instance) {
+                    $enrol->add_instance($this->course, ["customint1"=>$cohortid, "roleid"=>$role->id, "customint2"=>$groupid]);
+                }     
+            }
+
+        }
+    */
 }
