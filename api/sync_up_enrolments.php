@@ -377,20 +377,22 @@ class sync_up_enrolments_service extends service {
     function sync_discentes_enrol() {
         global $CFG, $DB;
         $alunos_suspensos = [];
+        $alunos_sincronizados = [];
         if (isset($this->json->alunos)) {
             foreach ($this->json->alunos as $usuario) {
                 $status = isset($usuario->situacao_diario) && strtolower($usuario->situacao_diario) != 'ativo' ? \ENROL_USER_SUSPENDED : \ENROL_USER_ACTIVE;
                 $this->sync_enrol($this->aluno_enrol, $usuario, $status);
+                array_push($alunos_sincronizados, $usuario->user->id);
             }
 
-            // // Inativa no diário os ALUNOS que não vieram na sicronização
-            // if (!$room) {
-            //     foreach ($DB->get_records_sql("SELECT ra.userid FROM {role_assignments} ra WHERE ra.roleid = {$aluno_enrol->roleid} AND ra.contextid={$this->context->id}") as $userid => $ra) {
-            //         if (!in_array($userid, $alunos_sincronizados)) {
-            //             $aluno_enrol->enrol->update_user_enrol($aluno_enrol->instance, $userid, \ENROL_USER_SUSPENDED);
-            //         }
-            //     }
-            // }
+            // Inativa no diário os ALUNOS que não vieram na sicronização
+            if (!$this->isRoom) {
+                foreach ($DB->get_records_sql("SELECT ra.userid FROM {role_assignments} ra WHERE ra.roleid = {$this->aluno_enrol->roleid} AND ra.contextid={$this->context->id}") as $userid => $ra) {
+                    if (!in_array($userid, $alunos_sincronizados)) {
+                        $this->aluno_enrol->enrol->update_user_enrol($this->aluno_enrol->instance, $userid, \ENROL_USER_SUSPENDED);
+                    }
+                }
+            }
         }
     }
 
@@ -447,11 +449,20 @@ class sync_up_enrolments_service extends service {
                     $group = $DB->get_record('groups', $data);
                 }
                 
+                $alunoIds = array_map(function($x) { return $x->user->id; }, $alunos);
+                list($insql, $inparams) = $DB->get_in_or_equal($alunoIds);
+                $sql = "SELECT userid FROM {groups_members} WHERE groupid = ? and userid $insql";
+                $ja_existem = $DB->get_records_sql($sql, array_merge([$group->id], $inparams));
+                $alunoIds = array_map(function($x) { return $x->userid; }, $ja_existem);
+
+                $new_group_members = [];
                 foreach ($alunos as $group_name => $usuario) {
-                    if (!$DB->get_record('groups_members', ['groupid' => $group->id, 'userid' => $usuario->user->id])) {
-                        \groups_add_member($group->id, $usuario->user->id);
+                    if (!isset($alunoIds[$usuario->user->id])) {
+                        array_push($new_group_members, (object)['groupid' => $group->id, 'userid' => $usuario->user->id, "timeadded"=>time()]);
+                        // \groups_add_member($group->id, $usuario->user->id);
                     }
                 }
+                $DB->insert_records("groups_members", $new_group_members);
             }
         }
     }
