@@ -406,7 +406,6 @@ class sync_up_enrolments_service extends service {
 
     function sync_groups() {
         global $CFG, $DB;
-        $alunos_suspensos = [];
         if (isset($this->json->alunos)) {
             $grupos = array();
             foreach ($this->json->alunos as $usuario) {
@@ -447,6 +446,7 @@ class sync_up_enrolments_service extends service {
                     \groups_create_group((object)$data);
                     $group = $DB->get_record('groups', $data);
                 }
+                
                 foreach ($alunos as $group_name => $usuario) {
                     if (!$DB->get_record('groups_members', ['groupid' => $group->id, 'userid' => $usuario->user->id])) {
                         \groups_add_member($group->id, $usuario->user->id);

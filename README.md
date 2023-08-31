@@ -298,3 +298,15 @@ git push --tags
             1. Sincronizar usuário
             2. Adicionar colaborador à coorte. *se já existir dará certo?*
 4. Retornar URL do Diário e URL da Sala de Coordenação
+
+
+## Tipo de commits
+
+- `feat:` novas funcionalidades.
+- `fix:` correção de bugs.
+- `refactor:` refatoração ou performances (sem impacto em lógica).
+- `style:` estilo ou formatação de código (sem impacto em lógica).
+- `test:` testes.
+- `doc:` documentação no código ou do repositório.
+- `env:` CI/CD ou settings.
+- `build:` build ou dependências.
