@@ -42,7 +42,7 @@ function suap_save_user_custom_field($categoryid, $shortname, $name, $datatype='
     return \local_suap\get_or_create(
         'user_info_field', 
         ['shortname'=>$shortname], 
-        ['categoryid'=>$categoryid, 'name'=>$name, 'datatype'=>$datatype, 'visible'=>$visible, 'param1'=>$p1, 'param2'=>$p2]
+        ['categoryid'=>$categoryid, 'name'=>$name, 'description' => $name, 'descriptionformat' => 2, 'datatype'=>$datatype, 'visible'=>$visible, 'param1'=>$p1, 'param2'=>$p2]
     );
 }
 
