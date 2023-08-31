@@ -463,32 +463,31 @@ class sync_up_enrolments_service extends service {
         $instances = [];
         $coortesid = [];
         $enrol = enrol_get_plugin("cohort");
-        foreach ($this->json->coortes as $coorte) {
-            if (!isset($instances[$coorte->role])) {
-                $instance = $DB->get_record('cohort', ['idnumber'=>$coorte->idnumber]);
-                if (!$instance) {
-                    $coortesid[$coorte->role] = \cohort_add_cohort(
-                        (object)[
-                            "name"=>$coorte->nome, 
-                            "idnumber"=>$coorte->idnumber,
-                            "description"=>$coorte->descricao,
-                            "visible"=>$coorte->ativo,
-                            "contextid"=>1
-                        ]
-                    );
-                } else {
-                    $instance->name = $coorte->nome;
-                    $instance->idnumber = $coorte->idnumber;
-                    $instance->description = $coorte->descricao;
-                    $instance->visible = $coorte->ativo;
-                    \cohort_update_cohort($instance);
-                    $coortesid[$coorte->role] = $instance->id;
+        if (isset(($this->json->coortes))) {
+            foreach ($this->json->coortes as $coorte) {
+                if (!isset($instances[$coorte->role])) {
+                    $instance = $DB->get_record('cohort', ['idnumber'=>$coorte->idnumber]);
+                    if (!$instance) {
+                        $coortesid[$coorte->role] = \cohort_add_cohort(
+                            (object)[
+                                "name"=>$coorte->nome, 
+                                "idnumber"=>$coorte->idnumber,
+                                "description"=>$coorte->descricao,
+                                "visible"=>$coorte->ativo,
+                                "contextid"=>1
+                            ]
+                        );
+                    } else {
+                        $instance->name = $coorte->nome;
+                        $instance->idnumber = $coorte->idnumber;
+                        $instance->description = $coorte->descricao;
+                        $instance->visible = $coorte->ativo;
+                        \cohort_update_cohort($instance);
+                        $coortesid[$coorte->role] = $instance->id;
+                    }
                 }
-            }
-            $cohortid = $coortesid[$coorte->role];
+                $cohortid = $coortesid[$coorte->role];
 
-
-            if (isset($coorte->colaboradores)) {
                 foreach ($coorte->colaboradores as $usuario) {
                     $usuario->isAluno = False;
                     $usuario->isProfessor = False;
@@ -496,16 +495,19 @@ class sync_up_enrolments_service extends service {
                     $this->sync_user($usuario);
                     \cohort_add_member($cohortid, $usuario->user->id);
                 }
-            }
 
-            if (!isset($roles[$coorte->role])) {
-                $roles[$coorte->role] = $DB->get_record('role', ['shortname'=>$coorte->role]);
-            }
-            $role = $roles[$coorte->role];
-            
-            $instance = $DB->get_record('enrol', ["enrol"=>"cohort", "customint1"=> $cohortid, "courseid"=>$this->course->id]);
-            if (!$instance) {
-                $enrol->add_instance($this->course, ["customint1"=>$cohortid, "roleid"=>$role->id, "customint2"=>0]);
+                if (!isset($roles[$coorte->role])) {
+                    $roles[$coorte->role] = $DB->get_record('role', ['shortname'=>$coorte->role]);
+                }
+                $role = $roles[$coorte->role];
+
+                if (!isset($instances[$cohortid])) {
+                    $instances[$cohortid] = $DB->get_record('enrol', ["enrol"=>"cohort", "customint1"=> $cohortid, "courseid"=>$this->course->id]);
+                    if (!$instance) {
+                        $enrol->add_instance($this->course, ["customint1"=>$cohortid, "roleid"=>$role->id, "customint2"=>0]);
+                    }
+                }
+                $instance = $instances[$cohortid];
             }
         }
     }
