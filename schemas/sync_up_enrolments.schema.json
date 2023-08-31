@@ -5,14 +5,7 @@
     "default": {},
     "title": "Root Schema",
     "required": [
-        "curso",
-        "turma",
-        "alunos",
-        "campus",
-        "diario",
-        "componente",
-        "professores",
-        "coortes"
+        "curso"
     ],
     "properties": {
         "curso": {
@@ -67,266 +60,36 @@
                     "descricao": "Tecnologia em Redes de Computadores - Nome Completo do Campus"
                 }
             ]
-        },
-        "turma": {
-            "type": "object",
-            "default": {},
-            "title": "The turma Schema",
-            "required": [
-                "id",
-                "codigo"
-            ],
-            "properties": {
-                "id": {
-                    "type": "integer",
-                    "default": 0,
-                    "title": "The id Schema",
-                    "examples": [
-                        2
-                    ]
-                },
-                "codigo": {
-                    "type": "string",
-                    "default": "",
-                    "title": "The codigo Schema",
-                    "examples": [
-                        "20221.6.00001.3E"
-                    ]
-                }
-            },
-            "examples": [
-                {
-                    "id": 2,
-                    "codigo": "20221.6.00001.3E"
-                }
-            ]
-        },
-        "alunos": {
+        }
             "type": "array",
-            "default": [],
-            "title": "The alunos Schema",
-            "items": {
-                "type": "object",
-                "title": "A Schema",
-                "required": [
-                    "id",
-                    "nome",
-                    "polo",
-                    "situacao",
-                    "matricula",
-                    "email",
-                    "email_secundario",
-                    "situacao_diario"
-                ],
-                "properties": {
-                    "id": {
-                        "type": "integer",
-                        "title": "The id Schema",
-                        "examples": [
-                            4,
-                            5,
-                            6
-                        ]
-                    },
-                    "nome": {
-                        "type": "string",
-                        "title": "The nome Schema",
-                        "examples": [
-                            "Nome do aluno quatro",
-                            "Nome do aluno cinco",
-                            "Nome do aluno seis"
-                        ]
-                    },
-                    "polo": {
-                        "type": "object",
-                        "title": "The polo Schema",
-                        "required": [
-                            "id",
-                            "descricao"
-                        ],
-                        "properties": {
-                            "id": {
-                                "type": "integer",
-                                "title": "The id Schema",
-                                "examples": [
-                                    1,
-                                    2
-                                ]
-                            },
-                            "descricao": {
-                                "type": "string",
-                                "title": "The descricao Schema",
-                                "examples": [
-                                    "Pólo Assú",
-                                    "Pólo EaD"
-                                ]
-                            }
-                        },
-                        "examples": [
-                            {
-                                "id": 1,
-                                "descricao": "Pólo Assú"
-                            },
-                            {
-                                "id": 2,
-                                "descricao": "Pólo EaD"
-                            },
-                            {
-                                "id": 2,
-                                "descricao": "Pólo EaD"
-                            }
-                        ]
-                    },
-                    "situacao": {
-                        "type": "string",
-                        "title": "The situacao Schema",
-                        "examples": [
-                            "Ativo",
-                            "Inativo"
-                        ]
-                    },
-                    "matricula": {
-                        "type": "string",
-                        "title": "The matricula Schema",
-                        "examples": [
-                            "201830000100004",
-                            "201830000100005",
-                            "201830000100006"
-                        ]
-                    },
-                    "email": {
-                        "type": "string",
-                        "title": "The email Schema",
-                        "examples": [
-                            "nome.4@academico.ifrn.edu.br",
-                            "nome.5@academico.ifrn.edu.br",
-                            "nome.6@academico.ifrn.edu.br"
-                        ]
-                    },
-                    "email_secundario": {
-                        "type": "string",
-                        "title": "The email_secundario Schema",
-                        "examples": [
-                            "nome.4@hotmail.com",
-                            "nome.5@gmail.com",
-                            "nome.6d@gmail.com"
-                        ]
-                    },
-                    "situacao_diario": {
-                        "type": "string",
-                        "default": "",
-                        "title": "The situacao_diario Schema",
-                        "examples": [
-                            "inAtivo"
-                        ]
-                    }
-                },
-                "examples": [
-                    {
-                        "id": 4,
-                        "nome": "Nome do aluno quatro",
-                        "polo": {
-                            "id": 1,
-                            "descricao": "Pólo Assú"
-                        },
-                        "situacao": "Ativo",
-                        "matricula": "201830000100004",
-                        "email": "nome.4@academico.ifrn.edu.br",
-                        "email_secundario": "nome.4@hotmail.com"
-                    },
-                    {
-                        "id": 5,
-                        "nome": "Nome do aluno cinco",
-                        "polo": {
-                            "id": 2,
-                            "descricao": "Pólo EaD"
-                        },
-                        "situacao": "Inativo",
-                        "situacao_diario": "inAtivo",
-                        "matricula": "201830000100005",
-                        "email": "nome.5@academico.ifrn.edu.br",
-                        "email_secundario": "nome.5@gmail.com"
-                    },
-                    {
-                        "id": 6,
-                        "nome": "Nome do aluno seis",
-                        "polo": {
-                            "id": 2,
-                            "descricao": "Pólo EaD"
-                        },
-                        "situacao": "Ativo",
-                        "matricula": "201830000100006",
-                        "email": "nome.6@academico.ifrn.edu.br",
-                        "email_secundario": "nome.6d@gmail.com"
-                    }
-                ]
-            },
-            "examples": [
-                [
-                    {
-                        "id": 4,
-                        "nome": "Nome do aluno quatro",
-                        "polo": {
-                            "id": 1,
-                            "descricao": "Pólo Assú"
-                        },
-                        "situacao": "Ativo",
-                        "matricula": "201830000100004",
-                        "email": "nome.4@academico.ifrn.edu.br",
-                        "email_secundario": "nome.4@hotmail.com"
-                    },
-                    {
-                        "id": 5,
-                        "nome": "Nome do aluno cinco",
-                        "polo": {
-                            "id": 2,
-                            "descricao": "Pólo EaD"
-                        },
-                        "situacao": "Inativo",
-                        "situacao_diario": "inAtivo",
-                        "matricula": "201830000100005",
-                        "email": "nome.5@academico.ifrn.edu.br",
-                        "email_secundario": "nome.5@gmail.com"
-                    },
-                    {
-                        "id": 6,
-                        "nome": "Nome do aluno seis",
-                        "polo": {
-                            "id": 2,
-                            "descricao": "Pólo EaD"
-                        },
-                        "situacao": "Ativo",
-                        "matricula": "201830000100006",
-                        "email": "nome.6@academico.ifrn.edu.br",
-                        "email_secundario": "nome.6d@gmail.com"
-                    }
-                ]
-            ]
-        },
-        "campus": {
+        "default": [],
+        "title": "The coortes Schema",
+        "items": {
             "type": "object",
             "default": {},
-            "title": "The campus Schema",
+            "title": "A Schema",
             "required": [
                 "id",
-                "sigla",
-                "descricao"
+                "nome",
+                "descricao",
+                "ativo",
+                "colaboradores"
             ],
             "properties": {
                 "id": {
-                    "type": "integer",
-                    "default": 0,
-                    "title": "The id Schema",
-                    "examples": [
-                        1
-                    ]
-                },
-                "sigla": {
                     "type": "string",
                     "default": "",
-                    "title": "The sigla Schema",
+                    "title": "The id Schema",
                     "examples": [
-                        "EAD"
+                        "ZL.15046.ASD"
+                    ]
+                },
+                "nome": {
+                    "type": "string",
+                    "default": "",
+                    "title": "The nome Schema",
+                    "examples": [
+                        "ZL.15046 - Assistente a Docência"
                     ]
                 },
                 "descricao": {
@@ -334,440 +97,66 @@
                     "default": "",
                     "title": "The descricao Schema",
                     "examples": [
-                        "Campus EaD"
-                    ]
-                }
-            },
-            "examples": [
-                {
-                    "id": 1,
-                    "sigla": "EAD",
-                    "descricao": "Campus EaD"
-                }
-            ]
-        },
-        "diario": {
-            "type": "object",
-            "default": {},
-            "title": "The diario Schema",
-            "required": [
-                "id",
-                "sigla",
-                "situacao",
-                "descricao",
-                "descricao_historico"
-            ],
-            "properties": {
-                "id": {
-                    "type": "integer",
-                    "default": 0,
-                    "title": "The id Schema",
-                    "examples": [
-                        2
+                        "Assistente a Docência: ZL.15046 - Especialista em Tecnologias Educacionais e Educação a Distância"
                     ]
                 },
-                "sigla": {
-                    "type": "string",
-                    "default": "",
-                    "title": "The sigla Schema",
-                    "examples": [
-                        "TEC.0001"
-                    ]
-                },
-                "situacao": {
-                    "type": "string",
-                    "default": "",
-                    "title": "The situacao Schema",
-                    "examples": [
-                        "Aberto"
-                    ]
-                },
-                "descricao": {
-                    "type": "string",
-                    "default": "",
-                    "title": "The descricao Schema",
-                    "examples": [
-                        "Bancos de Dados"
-                    ]
-                },
-                "descricao_historico": {
-                    "type": "string",
-                    "default": "",
-                    "title": "The descricao_historico Schema",
-                    "examples": [
-                        "Bancos de Dados"
-                    ]
-                }
-            },
-            "examples": [
-                {
-                    "id": 2,
-                    "sigla": "TEC.0001",
-                    "situacao": "Aberto",
-                    "descricao": "Bancos de Dados",
-                    "descricao_historico": "Bancos de Dados"
-                }
-            ]
-        },
-        "componente": {
-            "type": "object",
-            "default": {},
-            "title": "The componente Schema",
-            "required": [
-                "id",
-                "tipo",
-                "sigla",
-                "periodo",
-                "optativo",
-                "descricao",
-                "qtd_avaliacoes",
-                "descricao_historico"
-            ],
-            "properties": {
-                "id": {
-                    "type": "integer",
-                    "default": 0,
-                    "title": "The id Schema",
-                    "examples": [
-                        1
-                    ]
-                },
-                "tipo": {
-                    "type": "integer",
-                    "default": 0,
-                    "title": "The tipo Schema",
-                    "examples": [
-                        1
-                    ]
-                },
-                "sigla": {
-                    "type": "string",
-                    "default": "",
-                    "title": "The sigla Schema",
-                    "examples": [
-                        "TEC.0001"
-                    ]
-                },
-                "periodo": {
-                    "type": "null",
-                    "default": null,
-                    "title": "The periodo Schema",
-                    "examples": [
-                        null
-                    ]
-                },
-                "optativo": {
+                "ativo": {
                     "type": "boolean",
                     "default": false,
-                    "title": "The optativo Schema",
+                    "title": "The ativo Schema",
                     "examples": [
-                        false
+                        true
                     ]
                 },
-                "descricao": {
-                    "type": "string",
-                    "default": "",
-                    "title": "The descricao Schema",
-                    "examples": [
-                        "Bancos de Dados"
-                    ]
-                },
-                "qtd_avaliacoes": {
-                    "type": "integer",
-                    "default": 0,
-                    "title": "The qtd_avaliacoes Schema",
-                    "examples": [
-                        2
-                    ]
-                },
-                "descricao_historico": {
-                    "type": "string",
-                    "default": "",
-                    "title": "The descricao_historico Schema",
-                    "examples": [
-                        "Bancos de Dados"
-                    ]
-                }
-            },
-            "examples": [
-                {
-                    "id": 1,
-                    "tipo": 1,
-                    "sigla": "TEC.0001",
-                    "periodo": null,
-                    "optativo": false,
-                    "descricao": "Bancos de Dados",
-                    "qtd_avaliacoes": 2,
-                    "descricao_historico": "Bancos de Dados"
-                }
-            ]
-        },
-        "professores": {
-            "type": "array",
-            "default": [],
-            "title": "The professores Schema",
-            "items": {
-                "type": "object",
-                "title": "A Schema",
-                "required": [
-                    "id",
-                    "nome",
-                    "tipo",
-                    "email",
-                    "login",
-                    "status",
-                    "email_secundario"
-                ],
-                "properties": {
-                    "id": {
-                        "type": "integer",
-                        "title": "The id Schema",
-                        "examples": [
-                            1,
-                            2,
-                            3
-                        ]
-                    },
-                    "nome": {
-                        "type": "string",
-                        "title": "The nome Schema",
-                        "examples": [
-                            "Nome do professor principal",
-                            "Nome do professor formador",
-                            "Nome do tutor"
-                        ]
-                    },
-                    "tipo": {
-                        "type": "string",
-                        "title": "The tipo Schema",
-                        "examples": [
-                            "Principal",
-                            "Formador",
-                            "Tutor"
-                        ]
-                    },
-                    "email": {
-                        "type": "string",
-                        "title": "The email Schema",
-                        "examples": [
-                            "nome.sobrenome@ifrn.edu.br",
-                            "nome.2@ifrn.edu.br",
-                            "nome.3@ifrn.edu.br"
-                        ]
-                    },
-                    "login": {
-                        "type": "string",
-                        "title": "The login Schema",
-                        "examples": [
-                            "1234567",
-                            "2",
-                            "3"
-                        ]
-                    },
-                    "status": {
-                        "type": "string",
-                        "title": "The status Schema",
-                        "examples": [
-                            "ativo",
-                            "inativo"
-                        ]
-                    },
-                    "email_secundario": {
-                        "type": "string",
-                        "title": "The email_secundario Schema",
-                        "examples": [
-                            "nome.sobrenome@gmail.com",
-                            "nome.2@gmail.com",
-                            "nome.3@gmail.com"
-                        ]
-                    }
-                },
-                "examples": [
-                    {
-                        "id": 1,
-                        "nome": "Nome do professor principal",
-                        "tipo": "Principal",
-                        "email": "nome.sobrenome@ifrn.edu.br",
-                        "login": "1234567",
-                        "status": "ativo",
-                        "email_secundario": "nome.sobrenome@gmail.com"
-                    },
-                    {
-                        "id": 2,
-                        "nome": "Nome do professor formador",
-                        "tipo": "Formador",
-                        "email": "nome.2@ifrn.edu.br",
-                        "login": "2",
-                        "status": "inativo",
-                        "email_secundario": "nome.2@gmail.com"
-                    },
-                    {
-                        "id": 3,
-                        "nome": "Nome do tutor",
-                        "tipo": "Tutor",
-                        "email": "nome.3@ifrn.edu.br",
-                        "login": "3",
-                        "status": "ativo",
-                        "email_secundario": "nome.3@gmail.com"
-                    }
-                ]
-            },
-            "examples": [
-                [
-                    {
-                        "id": 1,
-                        "nome": "Nome do professor principal",
-                        "tipo": "Principal",
-                        "email": "nome.sobrenome@ifrn.edu.br",
-                        "login": "1234567",
-                        "status": "ativo",
-                        "email_secundario": "nome.sobrenome@gmail.com"
-                    },
-                    {
-                        "id": 2,
-                        "nome": "Nome do professor formador",
-                        "tipo": "Formador",
-                        "email": "nome.2@ifrn.edu.br",
-                        "login": "2",
-                        "status": "inativo",
-                        "email_secundario": "nome.2@gmail.com"
-                    },
-                    {
-                        "id": 3,
-                        "nome": "Nome do tutor",
-                        "tipo": "Tutor",
-                        "email": "nome.3@ifrn.edu.br",
-                        "login": "3",
-                        "status": "ativo",
-                        "email_secundario": "nome.3@gmail.com"
-                    }
-                ]
-            ]
-        },
-        "coortes": {
-            "type": "array",
-            "default": [],
-            "title": "The coortes Schema",
-            "items": {
-                "type": "object",
-                "default": {},
-                "title": "A Schema",
-                "required": [
-                    "id",
-                    "nome",
-                    "descricao",
-                    "ativo",
-                    "colaboradores"
-                ],
-                "properties": {
-                    "id": {
-                        "type": "string",
-                        "default": "",
-                        "title": "The id Schema",
-                        "examples": [
-                            "ZL.15046.ASD"
-                        ]
-                    },
-                    "nome": {
-                        "type": "string",
-                        "default": "",
-                        "title": "The nome Schema",
-                        "examples": [
-                            "ZL.15046 - Assistente a Docência"
-                        ]
-                    },
-                    "descricao": {
-                        "type": "string",
-                        "default": "",
-                        "title": "The descricao Schema",
-                        "examples": [
-                            "Assistente a Docência: ZL.15046 - Especialista em Tecnologias Educacionais e Educação a Distância"
-                        ]
-                    },
-                    "ativo": {
-                        "type": "boolean",
-                        "default": false,
-                        "title": "The ativo Schema",
-                        "examples": [
-                            true
-                        ]
-                    },
-                    "colaboradores": {
-                        "type": "array",
-                        "default": [],
-                        "title": "The colaboradores Schema",
-                        "items": {
-                            "type": "object",
-                            "default": {},
-                            "title": "A Schema",
-                            "required": [
-                                "username",
-                                "nome_completo",
-                                "email",
-                                "vinculo_ativo"
-                            ],
-                            "properties": {
-                                "username": {
-                                    "type": "string",
-                                    "default": "",
-                                    "title": "The username Schema",
-                                    "examples": [
-                                        "chave"
-                                    ]
-                                },
-                                "nome_completo": {
-                                    "type": "string",
-                                    "default": "",
-                                    "title": "The nome_completo Schema",
-                                    "examples": [
-                                        "nome da pessoa"
-                                    ]
-                                },
-                                "email": {
-                                    "type": "string",
-                                    "default": "",
-                                    "title": "The email Schema",
-                                    "examples": [
-                                        "email@da.pessoa"
-                                    ]
-                                },
-                                "vinculo_ativo": {
-                                    "type": "boolean",
-                                    "default": false,
-                                    "title": "The vinculo_ativo Schema",
-                                    "examples": [
-                                        true
-                                    ]
-                                }
+                "colaboradores": {
+                    "type": "array",
+                    "default": [],
+                    "title": "The colaboradores Schema",
+                    "items": {
+                        "type": "object",
+                        "default": {},
+                        "title": "A Schema",
+                        "required": [
+                            "username",
+                            "nome_completo",
+                            "email",
+                            "vinculo_ativo"
+                        ],
+                        "properties": {
+                            "username": {
+                                "type": "string",
+                                "default": "",
+                                "title": "The username Schema",
+                                "examples": [
+                                    "chave"
+                                ]
                             },
-                            "examples": [
-                                {
-                                    "username": "chave",
-                                    "nome_completo": "nome da pessoa",
-                                    "email": "email@da.pessoa",
-                                    "vinculo_ativo": true
-                                }
-                            ]
+                            "nome_completo": {
+                                "type": "string",
+                                "default": "",
+                                "title": "The nome_completo Schema",
+                                "examples": [
+                                    "nome da pessoa"
+                                ]
+                            },
+                            "email": {
+                                "type": "string",
+                                "default": "",
+                                "title": "The email Schema",
+                                "examples": [
+                                    "email@da.pessoa"
+                                ]
+                            },
+                            "vinculo_ativo": {
+                                "type": "boolean",
+                                "default": false,
+                                "title": "The vinculo_ativo Schema",
+                                "examples": [
+                                    true
+                                ]
+                            }
                         },
                         "examples": [
-                            [
-                                {
-                                    "username": "chave",
-                                    "nome_completo": "nome da pessoa",
-                                    "email": "email@da.pessoa",
-                                    "vinculo_ativo": true
-                                }
-                            ]
-                        ]
-                    }
-                },
-                "examples": [
-                    {
-                        "id": "ZL.15046.ASD",
-                        "nome": "ZL.15046 - Assistente a Docência",
-                        "descricao": "Assistente a Docência: ZL.15046 - Especialista em Tecnologias Educacionais e Educação a Distância",
-                        "ativo": true,
-                        "colaboradores": [
                             {
                                 "username": "chave",
                                 "nome_completo": "nome da pessoa",
@@ -775,132 +164,20 @@
                                 "vinculo_ativo": true
                             }
                         ]
-                    }
-                ]
+                    },
+                    "examples": [
+                        [
+                            {
+                                "username": "chave",
+                                "nome_completo": "nome da pessoa",
+                                "email": "email@da.pessoa",
+                                "vinculo_ativo": true
+                            }
+                        ]
+                    ]
+                }
             },
             "examples": [
-                [
-                    {
-                        "id": "ZL.15046.ASD",
-                        "nome": "ZL.15046 - Assistente a Docência",
-                        "descricao": "Assistente a Docência: ZL.15046 - Especialista em Tecnologias Educacionais e Educação a Distância",
-                        "ativo": true,
-                        "colaboradores": [
-                            {
-                                "username": "chave",
-                                "nome_completo": "nome da pessoa",
-                                "email": "email@da.pessoa",
-                                "vinculo_ativo": true
-                            }
-                        ]
-                    }
-                ]
-            ]
-        }
-    },
-    "examples": [
-        {
-            "curso": {
-                "id": 1,
-                "nome": "Tecnologia em Redes de Computadores",
-                "codigo": "00001",
-                "descricao": "Tecnologia em Redes de Computadores - Nome Completo do Campus"
-            },
-            "turma": {
-                "id": 2,
-                "codigo": "20221.6.00001.3E"
-            },
-            "alunos": [
-                {
-                    "id": 4,
-                    "nome": "Nome do aluno quatro",
-                    "polo": {
-                        "id": 1,
-                        "descricao": "Pólo Assú"
-                    },
-                    "situacao": "Ativo",
-                    "matricula": "201830000100004",
-                    "email": "nome.4@academico.ifrn.edu.br",
-                    "email_secundario": "nome.4@hotmail.com"
-                },
-                {
-                    "id": 5,
-                    "nome": "Nome do aluno cinco",
-                    "polo": {
-                        "id": 2,
-                        "descricao": "Pólo EaD"
-                    },
-                    "situacao": "Inativo",
-                    "situacao_diario": "inAtivo",
-                    "matricula": "201830000100005",
-                    "email": "nome.5@academico.ifrn.edu.br",
-                    "email_secundario": "nome.5@gmail.com"
-                },
-                {
-                    "id": 6,
-                    "nome": "Nome do aluno seis",
-                    "polo": {
-                        "id": 2,
-                        "descricao": "Pólo EaD"
-                    },
-                    "situacao": "Ativo",
-                    "matricula": "201830000100006",
-                    "email": "nome.6@academico.ifrn.edu.br",
-                    "email_secundario": "nome.6d@gmail.com"
-                }
-            ],
-            "campus": {
-                "id": 1,
-                "sigla": "EAD",
-                "descricao": "Campus EaD"
-            },
-            "diario": {
-                "id": 2,
-                "sigla": "TEC.0001",
-                "situacao": "Aberto",
-                "descricao": "Bancos de Dados",
-                "descricao_historico": "Bancos de Dados"
-            },
-            "componente": {
-                "id": 1,
-                "tipo": 1,
-                "sigla": "TEC.0001",
-                "periodo": null,
-                "optativo": false,
-                "descricao": "Bancos de Dados",
-                "qtd_avaliacoes": 2,
-                "descricao_historico": "Bancos de Dados"
-            },
-            "professores": [
-                {
-                    "id": 1,
-                    "nome": "Nome do professor principal",
-                    "tipo": "Principal",
-                    "email": "nome.sobrenome@ifrn.edu.br",
-                    "login": "1234567",
-                    "status": "ativo",
-                    "email_secundario": "nome.sobrenome@gmail.com"
-                },
-                {
-                    "id": 2,
-                    "nome": "Nome do professor formador",
-                    "tipo": "Formador",
-                    "email": "nome.2@ifrn.edu.br",
-                    "login": "2",
-                    "status": "inativo",
-                    "email_secundario": "nome.2@gmail.com"
-                },
-                {
-                    "id": 3,
-                    "nome": "Nome do tutor",
-                    "tipo": "Tutor",
-                    "email": "nome.3@ifrn.edu.br",
-                    "login": "3",
-                    "status": "ativo",
-                    "email_secundario": "nome.3@gmail.com"
-                }
-            ],
-            "coortes": [
                 {
                     "id": "ZL.15046.ASD",
                     "nome": "ZL.15046 - Assistente a Docência",
@@ -916,6 +193,24 @@
                     ]
                 }
             ]
-        }
-    ]
+        },
+        "examples": [
+            [
+                {
+                    "id": "ZL.15046.ASD",
+                    "nome": "ZL.15046 - Assistente a Docência",
+                    "descricao": "Assistente a Docência: ZL.15046 - Especialista em Tecnologias Educacionais e Educação a Distância",
+                    "ativo": true,
+                    "colaboradores": [
+                        {
+                            "username": "chave",
+                            "nome_completo": "nome da pessoa",
+                            "email": "email@da.pessoa",
+                            "vinculo_ativo": true
+                        }
+                    ]
+                }
+            ]
+        ]
+    }
 }
