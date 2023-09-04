@@ -142,7 +142,7 @@ class sync_up_enrolments_service extends service {
         $alunos = isset($this->json->alunos) ? $this->json->alunos : [];
 
         foreach (array_merge($professores, $alunos) as $usuario) {
-            $usuario->isProfessor = !isset($usuario->matricula);
+            $usuario->isProfessor = isset($usuario->login);
             $usuario->isAluno = isset($usuario->matricula);
             $this->sync_user($usuario);
         }
@@ -503,6 +503,7 @@ class sync_up_enrolments_service extends service {
                     $usuario->isAluno = False;
                     $usuario->isProfessor = False;
                     $usuario->isColaborador = True;
+                    $usuario->tipo = "Staff";
                     $this->sync_user($usuario);
                     \cohort_add_member($cohortid, $usuario->user->id);
                 }
