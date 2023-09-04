@@ -1,0 +1,346 @@
+### Pressione Ctrl + Alt + R para executar este request para usar no VSCode com o plugin "REST Client"
+### Apenas os atributos os obrigatórios
+
+POST http://ava/local/suap/api/?sync_up_enrolments HTTP/1.1
+Authentication: Token changeme
+
+{
+    "curso": {
+        "id": 1,
+        "nome": "Tecnologia em Redes de Computadores",
+        "codigo": "00001",
+        "descricao": "Tecnologia em Redes de Computadores - Nome Completo do Campus"
+    },
+    "turma": {
+        "id": 2,
+        "codigo": "20221.6.00001.3E"
+    },
+    "campus": {
+        "id": 1,
+        "sigla": "EAD",
+        "descricao": "Campus EaD"
+    },
+    "diario": {
+        "id": 2,
+        "sigla": "TEC.0001",
+        "situacao": "Aberto",
+        "descricao": "Bancos de Dados",
+        "descricao_historico": "Bancos de Dados"
+    },
+    "componente": {
+        "id": 1,
+        "tipo": 1,
+        "sigla": "TEC.0001",
+        "periodo": null,
+        "optativo": false,
+        "descricao": "Bancos de Dados",
+        "qtd_avaliacoes": 2,
+        "descricao_historico": "Bancos de Dados"
+    }
+}
+
+### Matricula alguns alunos
+POST http://ava/local/suap/api/?sync_up_enrolments HTTP/1.1
+Authentication: Token changeme
+
+{
+    "curso": {
+        "id": 1,
+        "nome": "Tecnologia em Redes de Computadores",
+        "codigo": "00001",
+        "descricao": "Tecnologia em Redes de Computadores - Nome Completo do Campus"
+    },
+    "turma": {
+        "id": 2,
+        "codigo": "20221.6.00001.3E"
+    },
+    "alunos": [
+        {
+            "id": 4,
+            "nome": "Nome do aluno quatro",
+            "polo": {
+                "id": 1,
+                "descricao": "Pólo Assú"
+            },
+            "situacao": "Ativo",
+            "matricula": "201830000100004",
+            "email": "nome.4@academico.ifrn.edu.br",
+            "email_secundario": "nome.4@hotmail.com"
+        },
+        {
+            "id": 5,
+            "nome": "Nome do aluno cinco",
+            "polo": {
+                "id": 2,
+                "descricao": "Pólo EaD"
+            },
+            "situacao": "Inativo",
+            "situacao_diario": "inAtivo",
+            "matricula": "201830000100005",
+            "email": "nome.5@academico.ifrn.edu.br",
+            "email_secundario": "nome.5@gmail.com"
+        },
+        {
+            "id": 6,
+            "nome": "Nome do aluno seis",
+            "polo": {
+                "id": 2,
+                "descricao": "Pólo EaD"
+            },
+            "situacao": "Ativo",
+            "matricula": "201830000100006",
+            "email": "nome.6@academico.ifrn.edu.br",
+            "email_secundario": "nome.6d@gmail.com"
+        }
+    ],
+    "campus": {
+        "id": 1,
+        "sigla": "EAD",
+        "descricao": "Campus EaD"
+    },
+    "diario": {
+        "id": 2,
+        "sigla": "TEC.0001",
+        "situacao": "Aberto",
+        "descricao": "Bancos de Dados",
+        "descricao_historico": "Bancos de Dados"
+    },
+    "componente": {
+        "id": 1,
+        "tipo": 1,
+        "sigla": "TEC.0001",
+        "periodo": null,
+        "optativo": false,
+        "descricao": "Bancos de Dados",
+        "qtd_avaliacoes": 2,
+        "descricao_historico": "Bancos de Dados"
+    },
+    "professores": [
+        {
+            "id": 1,
+            "nome": "Nome do professor principal",
+            "tipo": "Principal",
+            "email": "nome.sobrenome@ifrn.edu.br",
+            "login": "1234567",
+            "status": "ativo",
+            "email_secundario": "nome.sobrenome@gmail.com"
+        },
+        {
+            "id": 2,
+            "nome": "Nome do professor formador",
+            "tipo": "Formador",
+            "email": "nome.2@ifrn.edu.br",
+            "login": "2",
+            "status": "inativo",
+            "email_secundario": "nome.2@gmail.com"
+        },
+        {
+            "id": 3,
+            "nome": "Nome do tutor",
+            "tipo": "Tutor",
+            "email": "nome.3@ifrn.edu.br",
+            "login": "3",
+            "status": "ativo",
+            "email_secundario": "nome.3@gmail.com"
+        }
+    ]
+}
+
+### Desativa o 6 pois deixou de vir
+POST http://ava/local/suap/api/?sync_up_enrolments HTTP/1.1
+Authentication: Token changeme
+
+{
+    "curso": {
+        "id": 1,
+        "nome": "Tecnologia em Redes de Computadores",
+        "codigo": "00001",
+        "descricao": "Tecnologia em Redes de Computadores - Nome Completo do Campus"
+    },
+    "turma": {
+        "id": 2,
+        "codigo": "20221.6.00001.3E"
+    },
+    "alunos": [
+        {
+            "id": 4,
+            "nome": "Nome do aluno quatro",
+            "polo": {
+                "id": 1,
+                "descricao": "Pólo Assú"
+            },
+            "situacao": "Ativo",
+            "situacao_diario": "inAtivo",
+            "matricula": "201830000100004",
+            "email": "nome.4@academico.ifrn.edu.br",
+            "email_secundario": "nome.4@hotmail.com"
+        },
+        {
+            "id": 5,
+            "nome": "Nome do aluno cinco",
+            "polo": {
+                "id": 2,
+                "descricao": "Pólo EaD"
+            },
+            "programa": {
+                "id": 1,
+                "descricao": "UAB"
+            },
+            "situacao": "Inativo",
+            "situacao_diario": "Ativo",
+            "matricula": "201830000100005",
+            "email": "nome.5@academico.ifrn.edu.br",
+            "email_secundario": "nome.5@gmail.com"
+        }
+    ],
+    "campus": {
+        "id": 1,
+        "sigla": "EAD",
+        "descricao": "Campus EaD"
+    },
+    "diario": {
+        "id": 2,
+        "sigla": "TEC.0001",
+        "situacao": "Aberto",
+        "descricao": "Bancos de Dados",
+        "descricao_historico": "Bancos de Dados"
+    },
+    "componente": {
+        "id": 1,
+        "tipo": 1,
+        "sigla": "TEC.0001",
+        "periodo": null,
+        "optativo": false,
+        "descricao": "Bancos de Dados",
+        "qtd_avaliacoes": 2,
+        "descricao_historico": "Bancos de Dados"
+    },
+    "professores": [
+    ]
+}
+
+
+### Desativa o 6 pois deixou de vir
+POST http://ava/local/suap/api/?sync_up_enrolments HTTP/1.1
+Authentication: Token changeme
+
+{
+    "curso": {
+        "id": 1,
+        "nome": "Tecnologia em Redes de Computadores",
+        "codigo": "00001",
+        "descricao": "Tecnologia em Redes de Computadores - Nome Completo do Campus"
+    },
+    "turma": {
+        "id": 2,
+        "codigo": "20221.6.00001.3E"
+    },
+    "alunos": [
+        {
+            "id": 4,
+            "nome": "Nome do aluno quatro",
+            "polo": {
+                "id": 1,
+                "descricao": "Pólo Assú"
+            },
+            "situacao": "Ativo",
+            "matricula": "201830000100004",
+            "email": "nome.4@academico.ifrn.edu.br",
+            "email_secundario": "nome.4@hotmail.com"
+        },
+        {
+            "id": 5,
+            "nome": "Nome do aluno cinco",
+            "polo": {
+                "id": 2,
+                "descricao": "Pólo EaD"
+            },
+            "situacao": "Inativo",
+            "situacao_diario": "inAtivo",
+            "matricula": "201830000100005",
+            "email": "nome.5@academico.ifrn.edu.br",
+            "email_secundario": "nome.5@gmail.com"
+        },
+        {
+            "id": 6,
+            "nome": "Nome do aluno seis",
+            "polo": {
+                "id": 2,
+                "descricao": "Pólo EaD"
+            },
+            "situacao": "Ativo",
+            "matricula": "201830000100006",
+            "email": "nome.6@academico.ifrn.edu.br",
+            "email_secundario": "nome.6d@gmail.com"
+        }
+    ],
+    "campus": {
+        "id": 1,
+        "sigla": "EAD",
+        "descricao": "Campus EaD"
+    },
+    "diario": {
+        "id": 2,
+        "sigla": "TEC.0001",
+        "situacao": "Aberto",
+        "descricao": "Bancos de Dados",
+        "descricao_historico": "Bancos de Dados"
+    },
+    "componente": {
+        "id": 1,
+        "tipo": 1,
+        "sigla": "TEC.0001",
+        "periodo": null,
+        "optativo": false,
+        "descricao": "Bancos de Dados",
+        "qtd_avaliacoes": 2,
+        "descricao_historico": "Bancos de Dados"
+    },
+    "professores": [
+        {
+            "id": 1,
+            "nome": "Nome do professor principal",
+            "tipo": "Principal",
+            "email": "nome.sobrenome@ifrn.edu.br",
+            "login": "1234567",
+            "status": "ativo",
+            "email_secundario": "nome.sobrenome@gmail.com"
+        },
+        {
+            "id": 2,
+            "nome": "Nome do professor formador",
+            "tipo": "Formador",
+            "email": "nome.2@ifrn.edu.br",
+            "login": "2",
+            "status": "inativo",
+            "email_secundario": "nome.2@gmail.com"
+        },
+        {
+            "id": 3,
+            "nome": "Nome do tutor",
+            "tipo": "Tutor",
+            "email": "nome.3@ifrn.edu.br",
+            "login": "3",
+            "status": "ativo",
+            "email_secundario": "nome.3@gmail.com"
+        }
+    ],
+    "coortes": [
+        {
+            "idnumber": "ZL.15046.ASD",
+            "nome": "ZL.15046 - Assistente a Docência",
+            "descricao": "Assistente a Docência: ZL.15046 - Especialista em Tecnologias Educacionais e Educação a Distância",
+            "ativo": true,
+            "role": "teacher",
+            "colaboradores": [
+                {
+                    "login": "chave",
+                    "nome": "nome da pessoa",
+                    "email": "email@da.pessoa",
+                    "status": "Ativo",
+                    "tipo": "Principal"
+                }
+            ]
+        }
+    ]
+}
