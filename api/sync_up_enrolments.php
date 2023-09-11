@@ -422,7 +422,7 @@ class sync_up_enrolments_service extends service {
                 array_push($grupos[$entrada], $usuario);
                 array_push($grupos[$turma], $usuario);
                 array_push($grupos[$polo], $usuario);
-                array_push($grupos[$programa], $usuario);                
+                array_push($grupos[$programa], $usuario);
             }
            
             foreach ($grupos as $group_name => $alunos) {
