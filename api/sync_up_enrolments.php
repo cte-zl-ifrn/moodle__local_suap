@@ -422,26 +422,10 @@ class sync_up_enrolments_service extends service {
                 $turma = $this->json->turma->codigo;
                 $polo = isset($usuario->polo) && isset($usuario->polo->descricao) ? $usuario->polo->descricao : '--Sem pólo--';
                 $programa = isset($usuario->programa) && $usuario->programa != null ? $usuario->programa : "Institucional";
-                if (!in_array($entrada, $grupos)) {
-                    $grupos[$entrada] = [];
-                }
-                if (!in_array($turma, $grupos)) {
-                    $grupos[$turma] = [];
-                }
-                if (!in_array($polo, $grupos)) {
-                    $grupos[$polo] = [];
-                }
-                if (!in_array($programa, $grupos)) {
-                    $grupos[$programa] = [];
-                }
-            }
-
-            foreach ($this->json->alunos as $usuario) {
-                $entrada = substr($usuario->user->username, 0, 5);
-                $turma = $this->json->turma->codigo;
-                $polo = isset($usuario->polo) && isset($usuario->polo->descricao) ? $usuario->polo->descricao : '--Sem pólo--';
-                $programa = isset($usuario->programa) && $usuario->programa != null ? $usuario->programa : "Institucional";
-                
+                $grupos[$entrada] = (!in_array($entrada, $grupos)) ? [] : $grupos[$entrada];
+                $grupos[$turma] = (!in_array($turma, $grupos)) ? [] : $grupos[$turma];
+                $grupos[$polo] = (!in_array($polo, $grupos)) ? [] : $grupos[$polo];
+                $grupos[$programa] = (!in_array($programa, $grupos)) ? [] : $grupos[$programa];
                 array_push($grupos[$entrada], $usuario);
                 array_push($grupos[$turma], $usuario);
                 array_push($grupos[$polo], $usuario);
@@ -449,29 +433,36 @@ class sync_up_enrolments_service extends service {
             }
            
             foreach ($grupos as $group_name => $alunos) {
-                $data = ['courseid' => $this->course->id, 'name' => $group_name];
-                $group = $DB->get_record('groups', $data);
-                if (!$group) {
-                    \groups_create_group((object)$data);
-                    $group = $DB->get_record('groups', $data);
-                }
-                
-                $alunoIds = array_map(function($x) { return $x->user->id; }, $alunos);
-                list($insql, $inparams) = $DB->get_in_or_equal($alunoIds);
-                $sql = "SELECT userid FROM {groups_members} WHERE groupid = ? and userid $insql";
-                $ja_existem = $DB->get_records_sql($sql, array_merge([$group->id], $inparams));
-                $alunoIds = array_map(function($x) { return $x->userid; }, $ja_existem);
-
-                $new_group_members = [];
+                $group = $this->sync_group($group_name);
+                $idDosAlunosFaltandoAgrupar = $this->getIdDosAlunosFaltandoAgrupar($group, $alunos);
+                // $new_group_members = [];
                 foreach ($alunos as $group_name => $usuario) {
-                    if (!isset($alunoIds[$usuario->user->id])) {
-                        array_push($new_group_members, (object)['groupid' => $group->id, 'userid' => $usuario->user->id, "timeadded"=>time()]);
-                        // \groups_add_member($group->id, $usuario->user->id);
+                    if (!in_array($usuario->user->id, $idDosAlunosFaltandoAgrupar)) {
+                        \groups_add_member($group->id, $usuario->user->id);
+                        // array_push($new_group_members, (object)['groupid' => $group->id, 'userid' => $usuario->user->id, "timeadded"=>time()]);
                     }
                 }
-                $DB->insert_records("groups_members", $new_group_members);
+                // $DB->insert_records("groups_members", $new_group_members);
             }
         }
+    }
+
+    function sync_group($group_name) {
+        $data = ['courseid' => $this->course->id, 'name' => $group_name];
+        $group = $DB->get_record('groups', $data);
+        if (!$group) {
+            \groups_create_group((object)$data);
+            $group = $DB->get_record('groups', $data);
+        }
+        return $group;
+    }
+
+    function getIdDosAlunosFaltandoAgrupar($group, $alunos) {
+        $alunoIds = array_map(function($x) { return $x->user->id; }, $alunos);
+        list($insql, $inparams) = $DB->get_in_or_equal($alunoIds);
+        $sql = "SELECT userid FROM {groups_members} WHERE groupid = ? and userid $insql";
+        $ja_existem = $DB->get_records_sql($sql, array_merge([$group->id], $inparams));
+        return array_map(function($x) { return $x->userid; }, $ja_existem);
     }
 
     function sync_cohorts(){
