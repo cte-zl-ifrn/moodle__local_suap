@@ -118,20 +118,20 @@ function suap_bulk_user_custom_field() {
 }
 
 function local_suap_migrate($oldversion) {
-    // global $DB;
+    global $DB;
 
-    // $dbman = $DB->get_manager();
+    $dbman = $DB->get_manager();
 
-    // if ($oldversion <= 20231900033) {
-    //     $table = new xmldb_table("suap_enrolment_to_sync");
-    //     $table->add_field("id",             XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE,  null, null, null);
-    //     $table->add_field("json",           XMLDB_TYPE_TEXT,    'medium',   XMLDB_UNSIGNED, null,          null,            null, null, null);
-    //     $table->add_field("timecreated",    XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, null,            null, null, null);
-    //     $table->add_field("attempts",        XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, null,            null, null, null);
+    if ($oldversion <= 20231900042) {
+        $table = new xmldb_table("suap_enrolment_to_sync");
+        $table->add_field("id",             XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE,  null, null, null);
+        $table->add_field("json",           XMLDB_TYPE_TEXT,    'medium',   XMLDB_UNSIGNED, null,          null,            null, null, null);
+        $table->add_field("timecreated",    XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, null,            null, null, null);
+        $table->add_field("processed",      XMLDB_TYPE_INTEGER, '10',       XMLDB_UNSIGNED, XMLDB_NOTNULL, null,            null, null, null);
 
-    //     $table->add_key("primary",      XMLDB_KEY_PRIMARY,  ["id"],         null,       null);
-    //     $status = $dbman->create_table($table);
+        $table->add_key("primary",      XMLDB_KEY_PRIMARY,  ["id"],         null,       null);
+        $status = $dbman->create_table($table);
 
-    // }
+    }
     return true;
 }

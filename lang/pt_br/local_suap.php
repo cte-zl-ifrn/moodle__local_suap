@@ -80,3 +80,5 @@ $string["default_instructor_role_id"] = 'Roleid padrão para uma inscrição com
 $string["default_instructor_role_id_desc"] = 'Normalmente 4. Por quê? Este é o padrão do Moodle para professores que não podem editar.';
 $string["default_instructor_enrol_type"] = 'Enrol_type padrão para uma inscrição como moderador em salas de coordenação';
 $string["default_instructor_enrol_type_desc"] = 'Normalmente manuais. Por que? Porque os novos moderadores em salas de coordenação serão matriculados no SUAP e sincronizados com o Moodle';
+
+$string["sync_up_enrolments_task"] = 'Sync Up Enrolments Task';

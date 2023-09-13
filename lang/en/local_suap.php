@@ -88,3 +88,5 @@ $string["default_instructor_role_id"] = 'Default roleid for a new instructor enr
 $string["default_instructor_role_id_desc"] = 'Normally 3. Why? This is the Moodle default.';
 $string["default_instructor_enrol_type"] = 'Default enrol_type for a new instructor enrolment';
 $string["default_instructor_enrol_type_desc"] = 'Normally manual. Why? Because new instructors will be enrolled -manually- on SUAP and synched to Moodle';
+
+$string["sync_up_enrolments_task"] = 'Sync Up Enrolments Task';

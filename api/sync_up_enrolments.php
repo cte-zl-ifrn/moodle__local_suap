@@ -1,8 +1,6 @@
 <?php
 namespace local_suap;
 
-$jsonstring = file_get_contents('php://input');
-
 require_once('../../../course/lib.php');
 require_once('../../../user/lib.php');
 require_once('../../../cohort/lib.php');
@@ -41,10 +39,17 @@ class sync_up_enrolments_service extends service {
 
     
     function do_call() {
+        $jsonstring = file_get_contents('php://input');
+        $result = $this->process($jsonstring, false);
+        // salvar na fila
+        return $result;
+    }
+
+    function process($jsonstring, $addMembers) {
         global $CFG;
         $prefix = "{$CFG->wwwroot}/course/view.php";
 
-        $this->validate_json();
+        $this->validate_json($jsonstring);
         $this->sync_oauth_issuer();
         $this->sync_auths();
         $this->sync_users();
@@ -56,7 +61,9 @@ class sync_up_enrolments_service extends service {
         $this->sync_enrols();
         $this->sync_docentes_enrol();
         $this->sync_discentes_enrol();
-        $this->sync_groups();
+        if ($addMembers) {
+            $this->sync_groups();
+        }
         $this->sync_cohorts(); // só existe em diário
 
         $this->isRoom = true;
@@ -65,15 +72,15 @@ class sync_up_enrolments_service extends service {
         $this->sync_enrols();
         $this->sync_docentes_enrol();
         $this->sync_discentes_enrol();
-        $this->sync_groups();
+        if ($addMembers) {
+            $this->sync_groups();
+        }
 
         return ["url" => "$prefix?id={$this->diario->id}", "url_sala_coordenacao" => "$prefix?id={$this->coordenacao->id}"];
     }
 
 
-    function validate_json() {
-        global $jsonstring;
-
+    function validate_json($jsonstring) {
         $this->json = json_decode($jsonstring);
 
         if (!$this->json) {
