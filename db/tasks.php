@@ -12,7 +12,7 @@ class sync_up_enrolments_task extends \core\task\scheduled_task {
 
         // echo "do nothing";
         
-        // $items = $DB->get_records_sql("SELECT * FROM {suap_enrolment_to_sync} WHERE processed = 0 ORDER BY id ASC");
+        $items = $DB->get_records_sql("SELECT * FROM {suap_enrolment_to_sync} WHERE processed = 0 ORDER BY id ASC");
        
         foreach ($items as $item) {
             try {
