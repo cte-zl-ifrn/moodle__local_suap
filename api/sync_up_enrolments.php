@@ -448,6 +448,7 @@ class sync_up_enrolments_service extends service {
     }
 
     function sync_group($group_name) {
+        global $DB;
         $data = ['courseid' => $this->course->id, 'name' => $group_name];
         $group = $DB->get_record('groups', $data);
         if (!$group) {
@@ -458,6 +459,7 @@ class sync_up_enrolments_service extends service {
     }
 
     function getIdDosAlunosFaltandoAgrupar($group, $alunos) {
+        global $DB;
         $alunoIds = array_map(function($x) { return $x->user->id; }, $alunos);
         list($insql, $inparams) = $DB->get_in_or_equal($alunoIds);
         $sql = "SELECT userid FROM {groups_members} WHERE groupid = ? and userid $insql";
