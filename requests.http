@@ -182,10 +182,7 @@ Authentication: Token changeme
                 "id": 2,
                 "descricao": "Pólo EaD"
             },
-            "programa": {
-                "id": 1,
-                "descricao": "UAB"
-            },
+            "programa": "UAB",
             "situacao": "Inativo",
             "situacao_diario": "Ativo",
             "matricula": "201830000100005",
