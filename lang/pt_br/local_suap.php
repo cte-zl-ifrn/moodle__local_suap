@@ -26,6 +26,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $string['pluginname'] = 'SUAP Integration';
+$string['suap:adminview'] = 'Ver o admin do SUAP';
 
 
 # Auth token

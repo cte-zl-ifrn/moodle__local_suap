@@ -26,6 +26,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $string['pluginname'] = 'SUAP Integration';
+$string['suap:adminview'] = 'Ver o admin do SUAP';
 
 
 # Auth token
@@ -89,4 +90,5 @@ $string["default_instructor_role_id_desc"] = 'Normally 3. Why? This is the Moodl
 $string["default_instructor_enrol_type"] = 'Default enrol_type for a new instructor enrolment';
 $string["default_instructor_enrol_type_desc"] = 'Normally manual. Why? Because new instructors will be enrolled -manually- on SUAP and synched to Moodle';
 
+$string["sync_up_enrolments_task"] = 'Sync Up Enrolments Task';
 $string["sync_up_enrolments_task"] = 'Sync Up Enrolments Task';

@@ -1,17 +1,19 @@
 <?php
 namespace local_suap;
 
-require_once('../../../course/lib.php');
-require_once('../../../user/lib.php');
-require_once('../../../cohort/lib.php');
-require_once('../../../user/profile/lib.php');
-require_once('../../../group/lib.php');
-require_once("../../../lib/enrollib.php");
-require_once("../../../enrol/locallib.php");
-require_once("../../../enrol/externallib.php");
-require_once("../locallib.php");
-require_once("../classes/Jsv4/Validator.php");
-require_once("servicelib.php");
+require_once(\dirname(\dirname(\dirname(__DIR__))) . '/config.php');
+
+require_once($CFG->dirroot . '/course/lib.php');
+require_once($CFG->dirroot . '/user/lib.php');
+require_once($CFG->dirroot . '/cohort/lib.php');
+require_once($CFG->dirroot . '/user/profile/lib.php');
+require_once($CFG->dirroot . '/group/lib.php');
+require_once($CFG->dirroot . '/lib/enrollib.php');
+require_once($CFG->dirroot . '/enrol/locallib.php');
+require_once($CFG->dirroot . '/enrol/externallib.php');
+require_once($CFG->dirroot . '/local/suap/locallib.php');
+require_once($CFG->dirroot . '/local/suap/classes/Jsv4/Validator.php');
+require_once($CFG->dirroot . '/local/suap/api/servicelib.php');
 
 
 class sync_up_enrolments_service extends service {
@@ -41,8 +43,20 @@ class sync_up_enrolments_service extends service {
     function do_call() {
         $jsonstring = file_get_contents('php://input');
         $result = $this->process($jsonstring, false);
-        // salvar na fila
+        $this->insertSyncDB($jsonstring);
         return $result;
+    }
+
+    function insertSyncDB($jsonstring){
+        global $DB;
+        
+        $DB->insert_record("suap_enrolment_to_sync",
+        (object)[
+            'json'=>$jsonstring,
+            'timecreated'=>time(),
+            'processed'=>0
+        ]
+        );
     }
 
     function process($jsonstring, $addMembers) {
@@ -416,22 +430,24 @@ class sync_up_enrolments_service extends service {
     function sync_groups() {
         global $CFG, $DB;
         if (isset($this->json->alunos)) {
-            $grupos = array();
+            $grupos = [];
             foreach ($this->json->alunos as $usuario) {
                 $entrada = substr($usuario->user->username, 0, 5);
                 $turma = $this->json->turma->codigo;
                 $polo = isset($usuario->polo) && isset($usuario->polo->descricao) ? $usuario->polo->descricao : '--Sem pólo--';
                 $programa = isset($usuario->programa) && $usuario->programa != null ? $usuario->programa : "Institucional";
-                $grupos[$entrada] = (!in_array($entrada, $grupos)) ? [] : $grupos[$entrada];
-                $grupos[$turma] = (!in_array($turma, $grupos)) ? [] : $grupos[$turma];
-                $grupos[$polo] = (!in_array($polo, $grupos)) ? [] : $grupos[$polo];
-                $grupos[$programa] = (!in_array($programa, $grupos)) ? [] : $grupos[$programa];
-                array_push($grupos[$entrada], $usuario);
-                array_push($grupos[$turma], $usuario);
-                array_push($grupos[$polo], $usuario);
-                array_push($grupos[$programa], $usuario);
+
+                if (!isset($grupos[$entrada])) {$grupos[$entrada] = [];}
+                if (!isset($grupos[$turma])) {$grupos[$turma] = [];}
+                if (!isset($grupos[$polo])) {$grupos[$polo] = [];}
+                if (!isset($grupos[$programa])) {$grupos[$programa] = [];}
+
+                $grupos[$entrada][] = $usuario;
+                $grupos[$turma][] = $usuario;
+                $grupos[$polo][] = $usuario;
+                $grupos[$programa][] = $usuario;
             }
-           
+
             foreach ($grupos as $group_name => $alunos) {
                 $group = $this->sync_group($group_name);
                 $idDosAlunosFaltandoAgrupar = $this->getIdDosAlunosFaltandoAgrupar($group, $alunos);
