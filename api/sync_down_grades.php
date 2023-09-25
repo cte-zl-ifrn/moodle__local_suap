@@ -15,10 +15,7 @@ class sync_down_grades_service extends service {
     
     function do_call() {
         global $CFG, $DB;
-        try { 
-            
-            // $this->authenticate();
-            
+        try {         
             $notas = $DB->get_records_sql("
                 WITH a AS (
                     SELECT  ra.userid                        AS id_usuario,
@@ -31,7 +28,7 @@ class sync_down_grades_service extends service {
                                     INNER JOIN {role_assignments} AS ra ON (ctx.id=ra.contextid)
                                         INNER JOIN {role} AS r ON (ra.roleid=r.id AND r.archetype='student')
                                         INNER JOIN {user} AS u ON (ra.userid=u.id)
-                    WHERE    C.idnumber = ?
+                    WHERE    C.idnumber LIKE '%#' || ?
                 )
                 SELECT   a.matricula, a.nome_completo,
                         (
@@ -43,7 +40,7 @@ class sync_down_grades_service extends service {
                         ) notas
                 FROM     a
                 ORDER BY a.nome_completo           
-            ", [$_GET['codigo_diario']]);
+            ", [$_GET['diario_id']]);
             $result = array_values($notas);
             foreach ($result as $key => $aluno) {
                 if ($aluno->notas != null) {
