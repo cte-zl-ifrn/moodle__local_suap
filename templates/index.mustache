@@ -22,38 +22,32 @@
     </tbody>
 </table>
 
-
-<nav aria-label="Page" class="pagination pagination-centered justify-content-center" id="yui_3_17_2_1_1695163164467_576">
-        <ul class="mt-1 pagination " data-page-size="30" id="yui_3_17_2_1_1695163164467_575">
-                <li class="page-item active" data-page-number="1">
-                    <a href="#" class="page-link" aria-current="page">
-                        <span aria-hidden="true">1</span>
-                        <span class="sr-only">Page 1</span>
+ <nav aria-label="Page" class="pagination pagination-centered justify-content-center" id="">
+        <ul class="mt-1 pagination " id="">
+            {{#paginas}}
+                <li class="page-item" data-page-number="{{.}}">
+                    <a href="index.php?pagina={{.}}" class="page-link" aria-current="page">
+                        <span aria-hidden="true">{{.}}</span>
+                        <span class="sr-only">Page {{.}}</span>
                     </a>
                 </li>
-                <li class="page-item " data-page-number="2">
-                    <a href="http://ava/admin/user.php?sort=firstname&amp;dir=ASC&amp;perpage=30&amp;page=1" class="page-link">
-                        <span aria-hidden="true">2</span>
-                        <span class="sr-only">Page 2</span>
-                    </a>
-                </li>
-                <li class="page-item " data-page-number="3">
-                    <a href="http://ava/admin/user.php?sort=firstname&amp;dir=ASC&amp;perpage=30&amp;page=2" class="page-link">
-                        <span aria-hidden="true">3</span>
-                        <span class="sr-only">Page 3</span>
-                    </a>
-                </li>
-                <li class="page-item " data-page-number="4" id="yui_3_17_2_1_1695163164467_574">
-                    <a href="http://ava/admin/user.php?sort=firstname&amp;dir=ASC&amp;perpage=30&amp;page=3" class="page-link" id="yui_3_17_2_1_1695163164467_573">
-                        <span aria-hidden="true">4</span>
-                        <span class="sr-only">Page 4</span>
-                    </a>
-                </li>
-                <li class="page-item" data-page-number="2">
-                    <a href="http://ava/admin/user.php?sort=firstname&amp;dir=ASC&amp;perpage=30&amp;page=1" class="page-link">
-                        <span aria-hidden="true">»</span>
-                        <span class="sr-only">Next page</span>
-                    </a>
-                </li>
+            {{/paginas}}
         </ul>
-    </nav>
+    </nav> 
+
+     <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var urlParams = new URLSearchParams(window.location.search);
+            var pageNumber = urlParams.get("pagina");
+
+            if (pageNumber !== null) {
+                var pageItem = document.querySelector('.page-item[data-page-number="' + pageNumber + '"]');
+                if (pageItem !== null) {
+                    pageItem.classList.add("active");
+                }
+            }else{
+                document.querySelector('.page-item').classList.add("active");
+            }
+
+        });
+    </script>

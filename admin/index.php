@@ -21,6 +21,23 @@ $statuses = [0=>"Não processado", 1=>"Sucesso", 2=>'Falha'];
 foreach ($linhas as $key => $value) {
     $value->status = $statuses[$value->processed];
 } 
-$templatecontext = ['linhas' => $linhas];
+
+$totalRegistros = count($linhas); 
+$itensPorPagina = 10; 
+
+$paginaAtual = isset($_GET['pagina']) ? $_GET['pagina'] : 1;
+
+$totalPaginas = ceil($totalRegistros / $itensPorPagina);
+
+$indiceInicio = ($paginaAtual - 1) * $itensPorPagina;
+
+$registrosPaginaAtual = array_slice($linhas, $indiceInicio, $itensPorPagina);
+
+$templatecontext = [
+    'linhas' => $registrosPaginaAtual, 
+    'paginas' => range(1, $totalPaginas),
+];
+
+
 echo $OUTPUT->render_from_template('local_suap/index', $templatecontext);
 echo $OUTPUT->footer();
