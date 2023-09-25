@@ -26,19 +26,19 @@ class sync_down_grades_service extends service {
                             u.firstname || ' ' || u.lastname AS nome_completo,
                             u.email                          AS email,
                             c.id                             AS id_curso
-                    FROM     mdl_course AS c
-                                INNER JOIN mdl_context AS ctx ON (c.id=ctx.instanceid AND ctx.contextlevel=50)
-                                    INNER JOIN mdl_role_assignments AS ra ON (ctx.id=ra.contextid)
-                                        INNER JOIN mdl_role AS r ON (ra.roleid=r.id AND r.archetype='student')
-                                        INNER JOIN mdl_user AS u ON (ra.userid=u.id)
+                    FROM     {course} AS c
+                                INNER JOIN {context} AS ctx ON (c.id=ctx.instanceid AND ctx.contextlevel=50)
+                                    INNER JOIN {role_assignments} AS ra ON (ctx.id=ra.contextid)
+                                        INNER JOIN {role} AS r ON (ra.roleid=r.id AND r.archetype='student')
+                                        INNER JOIN {user} AS u ON (ra.userid=u.id)
                     WHERE    C.idnumber = ?
                 )
                 SELECT   a.matricula, a.nome_completo,
                         (
                                 SELECT   jsonb_object_agg(gi.idnumber::text, gg.finalgrade)
-                                FROM     mdl_grade_items gi
-                                            inner join mdl_grade_grades gg on (gg.itemid=gi.id AND gg.userid = a.id_usuario)
-                                WHERE    gi.idnumber IN ('N1', 'N2', 'N3', 'N4', 'NF')
+                                FROM     {grade_items} gi
+                                            inner join {grade_grades} gg on (gg.itemid=gi.id AND gg.userid = a.id_usuario)
+                                WHERE    gi.idnumber IN ('N1', 'N2', 'N3', 'N4', 'N5', 'N6', 'N7', 'N8', 'N9', 'NAF')
                                 AND    gi.courseid = a.id_curso
                         ) notas
                 FROM     a
