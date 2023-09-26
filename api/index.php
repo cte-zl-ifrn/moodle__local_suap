@@ -29,6 +29,7 @@ function exception_handler($exception) {
 
 try {
     require_once('../../../config.php');
+    header('Content-Type: application/json; charset=utf-8');
     ini_set('display_errors', 1);
     ini_set('display_startup_errors', 1);
     error_reporting(E_ALL);
@@ -44,7 +45,7 @@ try {
         
         'sync_up_enrolments',
         // 'sync_down_attendances',
-        // 'sync_down_grades'
+        'sync_down_grades'
     ];
     $params = explode('&', $_SERVER["QUERY_STRING"]);
     $service_name = $params[0];

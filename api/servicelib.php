@@ -20,18 +20,23 @@ class service {
         $sync_up_auth_token = config('auth_token');
 
         $headers = getallheaders();
-        if (!array_key_exists('Authentication', $headers)) {
+        $authentication_key = array_key_exists('Authentication', $headers) ? "Authentication": "authentication";
+        if (!array_key_exists($authentication_key, $headers)) {
             throw new \Exception("Bad Request - Authentication not informed", 400);
         }
 
-        if ("Token $sync_up_auth_token" != $headers['Authentication']) {
+        if ("Token $sync_up_auth_token" != $headers[$authentication_key]) {
             throw new \Exception("Unauthorized", 401);
         }
     }
 
     function call() {
-        // $this->authenticate();
+        $this->authenticate();
         echo json_encode($this->do_call());
+    }
+
+    function do_call() {
+        throw new \Exception("Não implementado", 501);
     }
 
 }

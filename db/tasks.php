@@ -1,27 +1,22 @@
 <?php
-// namespace local_suap\task;
+defined('MOODLE_INTERNAL') || die();
 
-// class send_enrolments_to_portal extends \core\task\scheduled_task {
-//     public function get_name() {
-//         return get_string('send_enrolments_to_portal', 'local_suap');
-//     }
-
-//     public function execute() {
-//         echo "do nothing";
-//     }
-// }
-
-// $tasks = [
-//     [
-//         'classname' => 'local_suap\task\send_enrolments_to_portal',
-//         'blocking' => 0,
-//         'minute' => '*/5',
-//         'hour' => '*',
-//         'day' => '*',
-//         'month' => '*',
-//         'dayofweek' => '*',
-//     ],
-// ];
+/**
+ * Task schedule configuration for the local_suap plugin.
+ *
+ * @package   local_suap
+ * @copyright Year, You Name <your@email.address>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 $tasks = [
+    [
+        'classname' => 'local_suap\task\sync_up_enrolments_task',
+        'blocking' => 1,
+        'minute' => '*/1',
+        'hour' => '*',
+        'day' => '*',
+        'month' => '*',
+        'dayofweek' => '*',
+    ],
 ];
