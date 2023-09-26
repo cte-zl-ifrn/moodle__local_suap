@@ -7,7 +7,7 @@ require_once('../../../course/externallib.php');
 require_once('../locallib.php');
 require_once("servicelib.php");
 
-class set_favourite_course extends \local_suap\service{
+class set_favourite_course_service extends \local_suap\service{
 
     function do_call() {
         global $DB, $USER;
@@ -21,10 +21,8 @@ class set_favourite_course extends \local_suap\service{
     }
 
     function execute($courseid, $favourite) {
-         return \core_course_external::set_favourite_courses([['id'=>$courseid, 'favourite'=>$favourite]]);
+        return \core_course_external::set_favourite_courses([['id'=>$courseid, 'favourite'=>$favourite]]);
     }
-
-
+ 
+    
 }
-
-(new set_favourite_course())->call();

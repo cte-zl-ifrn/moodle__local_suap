@@ -30,5 +30,3 @@ class get_messages_service extends \local_suap\service{
     }
 
 }
-
-(new get_messages_service())->call();
