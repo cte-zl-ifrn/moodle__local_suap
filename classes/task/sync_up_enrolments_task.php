@@ -16,12 +16,9 @@ class sync_up_enrolments_task extends \core\task\scheduled_task {
 
         require_once($CFG->dirroot . "/local/suap/api/sync_up_enrolments.php");
 
-        // echo "do nothing";
-
         $items = $DB->get_records_sql("SELECT * FROM {suap_enrolment_to_sync} WHERE processed = 0 ORDER BY id ASC");
        
         foreach ($items as $item) {
-            echo "iteri $item->id\n";
             try {
                 $service = new \local_suap\sync_up_enrolments_service();
                 $service->process($item->json, true);

@@ -7,7 +7,7 @@ require_once('../../../course/externallib.php');
 require_once('../locallib.php');
 require_once("servicelib.php");
 
-class set_hidden_course extends \local_suap\service{
+class set_visible_course_service extends \local_suap\service{
 
     function do_call() {
         global $DB, $USER;
@@ -36,5 +36,3 @@ class set_hidden_course extends \local_suap\service{
 
 
 }
-
-(new set_hidden_course())->call();

@@ -142,5 +142,3 @@ class get_diarios_service extends \local_suap\service {
         );
     }
 }
-
-(new get_diarios_service())->call();

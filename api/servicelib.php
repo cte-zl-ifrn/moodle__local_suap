@@ -35,4 +35,8 @@ class service {
         echo json_encode($this->do_call());
     }
 
+    function do_call() {
+        throw new \Exception("Não implementado", 501);
+    }
+
 }
