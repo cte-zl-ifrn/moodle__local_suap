@@ -1,8 +1,20 @@
 <h1>Visualizar as integrações</h1>
+<div class="d-flex flex-row-reverse">
+    <input class="form-control col-md-2 mb-2" type="text" id="searchInput" placeholder="Pesquisar...">
+</div>
 <table class="table">
     <thead>
     <tr>
-        <th>ID</th><th>Time Created</th><th>Processed</th>
+        <th>
+            <a href="index.php?pagina=1&ordenacao=asc">ID</a>
+        </th>
+        <th>
+            <a href="index.php?pagina=1&ordenacao=asc">Time Created</a>
+            
+        </th>
+        <th>
+            <a href="index.php?pagina=1&ordenacao=asc">Processed</a>
+        </th>
     </tr>
 
     </thead>
@@ -22,18 +34,23 @@
     </tbody>
 </table>
 
- <nav aria-label="Page" class="pagination pagination-centered justify-content-center" id="">
-        <ul class="mt-1 pagination " id="">
-            {{#paginas}}
-                <li class="page-item" data-page-number="{{.}}">
-                    <a href="index.php?pagina={{.}}" class="page-link" aria-current="page">
-                        <span aria-hidden="true">{{.}}</span>
-                        <span class="sr-only">Page {{.}}</span>
-                    </a>
-                </li>
-            {{/paginas}}
-        </ul>
-    </nav> 
+<nav aria-label="Page" class="pagination pagination-centered justify-content-center" id="">
+    <ul class="mt-1 pagination flex-wrap" id="">
+            <li class="page-item" data-page-number="1">
+                <a href="index.php?pagina=1" class="page-link" aria-current="page">
+                    <span aria-hidden="true">1</span>
+                    <span class="sr-only">Page 1</span>
+                </a>
+            </li>
+        {{#paginas}}
+            <li class="page-item" data-page-number="{{.}}">
+                <a href="index.php?pagina={{.}}" class="page-link" aria-current="page">
+                    <span aria-hidden="true">{{.}}</span>
+                    <span class="sr-only">Page {{.}}</span>
+                </a>
+            </li>
+        {{/paginas}}
+</nav>
 
      <script>
         document.addEventListener("DOMContentLoaded", function () {
@@ -51,3 +68,52 @@
 
         });
     </script>
+
+    <script>
+document.querySelectorAll('th a').forEach(function(link) {
+    link.addEventListener('click', function(event) {
+        event.preventDefault();
+        var currentURL = new URL(window.location.href);
+        var sortOrder = currentURL.searchParams.get('ordenacao');
+        
+        if (sortOrder === 'asc' || sortOrder === null) {
+            currentURL.searchParams.set('ordenacao', 'desc');
+       
+        } else if (sortOrder === 'desc') {
+            currentURL.searchParams.set('ordenacao', 'asc');
+
+        }
+        
+        window.location.href = currentURL.href;
+    });
+});
+</script>
+
+<script>
+    document.getElementById("searchInput").addEventListener("input", function () {
+        var input, filter, table, tbody, tr, td, i, j, txtValue;
+        input = document.getElementById("searchInput");
+        filter = input.value.toUpperCase();
+        table = document.querySelector(".table");
+        tbody = table.querySelector("tbody");
+        tr = tbody.getElementsByTagName("tr");
+
+        if(filter.length >= 3){
+            for (i = 0; i < tr.length; i++) {
+                tr[i].style.display = "none"; // Oculta todas as linhas no início.
+                td = tr[i].getElementsByTagName("td");
+                for (j = 0; j < td.length; j++) {
+                    txtValue = td[j].textContent || td[j].innerText;
+                    if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                        tr[i].style.display = ""; // Exibe a linha se a pesquisa for encontrada em qualquer coluna.
+                        break; // Sai do loop interno assim que encontrar uma correspondência.
+                    }
+                }
+            }
+        }else{
+            for (i = 0; i < tr.length; i++) {
+                tr[i].style.display = ""; // Exibe todas as linhas quando o campo de pesquisa está vazio.
+            }
+        }
+    });
+</script>
