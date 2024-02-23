@@ -6,10 +6,21 @@ require_once('../../../config.php');
 require_once('../locallib.php');
 require_once("servicelib.php");
 
+define("REGEX_CODIGO_DIARIO", '/^(\d\d\d\d\d)\.(\d*)\.(\d*)\.(.*)\.(.*\..*)$/');
+define("REGEX_CODIGO_COORDENACAO", '/^ZL\.\d*/');
+define("REGEX_CODIGO_PRATICA", '/^(.*)\.(\d{11,14}\d*)$/');
+define("REGEX_CODIGO_DIARIO_ELEMENTS_COUNT", 6);
+define("REGEX_CODIGO_DIARIO_SEMESTRE", 1);
+define("REGEX_CODIGO_DIARIO_PERIODO", 2);
+define("REGEX_CODIGO_DIARIO_CURSO", 3);
+define("REGEX_CODIGO_DIARIO_TURMA", 4);
+define("REGEX_CODIGO_DIARIO_DISCIPLINA", 5);
 
-class get_diarios_service extends \local_suap\service {
+class get_diarios_service extends \local_suap\service
+{
 
-    function get_cursos($all_diarios) {
+    function get_cursos($all_diarios)
+    {
         global $DB;
         $result = [];
         foreach ($all_diarios as $course) {
@@ -21,8 +32,9 @@ class get_diarios_service extends \local_suap\service {
         }
         return array_values($result);
     }
-    
-    function get_disciplinas($all_diarios) {
+
+    function get_disciplinas($all_diarios)
+    {
         global $DB;
         $result = [];
         foreach ($all_diarios as $course) {
@@ -34,14 +46,15 @@ class get_diarios_service extends \local_suap\service {
         }
         return array_values($result);
     }
-    
-    function get_semestres($all_diarios) {
+
+    function get_semestres($all_diarios)
+    {
         global $DB;
-    
+
         $result = [];
         foreach ($all_diarios as $course) {
             preg_match(REGEX_CODIGO_DIARIO, $course->shortname, $matches);
-            if (count($matches) == REGEX_CODIGO_DIARIO_ELEMENTS_COUNT) {   
+            if (count($matches) == REGEX_CODIGO_DIARIO_ELEMENTS_COUNT) {
                 $semestre = $matches[REGEX_CODIGO_DIARIO_SEMESTRE];
                 $result[$semestre] = ['id' => $semestre, 'label' => substr($semestre, 0, -1) . '.' . substr($semestre, 4, 1)];
             }
@@ -49,8 +62,10 @@ class get_diarios_service extends \local_suap\service {
         return array_values($result);
     }
 
-    function get_all_diarios($username) {
-        return \local_suap\get_recordset_as_array("
+    function get_all_diarios($username)
+    {
+        return \local_suap\get_recordset_as_array(
+            "
             SELECT      c.id, 
                         c.shortname shortname,
                         c.fullname fullname
@@ -61,12 +76,14 @@ class get_diarios_service extends \local_suap\service {
                                 INNER JOIN {course} c ON (ctx.instanceid=c.id)
             WHERE u.username = ?
             ",
-            [$username]);
+            [$username]
+        );
     }
 
-    function get_diarios($username, $semestre, $situacao, $ordenacao, $disciplina, $curso, $arquetipo, $q, $page, $page_size) {
+    function get_diarios($username, $semestre, $situacao, $ordenacao, $disciplina, $curso, $arquetipo, $q, $page, $page_size)
+    {
         global $DB, $CFG, $USER;
-    
+
         $USER = $DB->get_record('user', ['username' => $username]);
         $USER = $DB->get_record('user', ['username' => $_GET['username']]);
         if (!$USER) {
@@ -80,7 +97,7 @@ class get_diarios_service extends \local_suap\service {
                 "praticas" => [],
             ];
         }
-        
+
         $all_diarios = $this->get_all_diarios($USER->username);
         $enrolled_courses = \core_course_external::get_enrolled_courses_by_timeline_classification($situacao, 0, 0, $ordenacao)['courses'];
         $diarios = [];
@@ -92,22 +109,22 @@ class get_diarios_service extends \local_suap\service {
             unset($diario->courseimage);
             $coursecontext = \context_course::instance($diario->id);
             $diario->can_set_visibility = has_capability('moodle/course:visibility', $coursecontext, $USER) ? 1 : 0;
-            
+
             if (preg_match(REGEX_CODIGO_COORDENACAO, $diario->shortname)) {
                 $coordenacoes[] = $diario;
             } elseif (preg_match(REGEX_CODIGO_PRATICA, $diario->shortname)) {
                 $praticas[] = $diario;
-            } elseif (!empty($semestre . $disciplina . $curso . $q) ) {
+            } elseif (!empty($semestre . $disciplina . $curso . $q)) {
                 preg_match(REGEX_CODIGO_DIARIO, $diario->shortname, $matches);
                 if (count($matches) == REGEX_CODIGO_DIARIO_ELEMENTS_COUNT) {
                     if (
-                            ( (empty($q)) || (!empty($q) && strpos(strtoupper($diario->shortname . ' ' . $diario->fullname), strtoupper($q)) !== false ) ) &&
-                            ( 
-                                ( (empty($semestre)) || (!empty($semestre) && $matches[REGEX_CODIGO_DIARIO_SEMESTRE] == $semestre) ) &&
-                                ( (empty($disciplina)) || (!empty($disciplina) && $matches[REGEX_CODIGO_DIARIO_DISCIPLINA] == $disciplina)) &&
-                                ( (empty($curso)) || (!empty($curso) && $matches[REGEX_CODIGO_DIARIO_CURSO] == $curso) ) 
-                            )
-                        ) {
+                        ((empty($q)) || (!empty($q) && strpos(strtoupper($diario->shortname . ' ' . $diario->fullname), strtoupper($q)) !== false)) &&
+                        (
+                            ((empty($semestre)) || (!empty($semestre) && $matches[REGEX_CODIGO_DIARIO_SEMESTRE] == $semestre)) &&
+                            ((empty($disciplina)) || (!empty($disciplina) && $matches[REGEX_CODIGO_DIARIO_DISCIPLINA] == $disciplina)) &&
+                            ((empty($curso)) || (!empty($curso) && $matches[REGEX_CODIGO_DIARIO_CURSO] == $curso))
+                        )
+                    ) {
                         $diarios[] = $diario;
                     }
                 }
@@ -116,7 +133,7 @@ class get_diarios_service extends \local_suap\service {
                 $diarios[] = $diario;
             }
         }
-        
+
         return [
             "semestres" => $this->get_semestres($all_diarios),
             "disciplinas" => $this->get_disciplinas($all_diarios),
@@ -127,7 +144,8 @@ class get_diarios_service extends \local_suap\service {
         ];
     }
 
-    function do_call() {
+    function do_call()
+    {
         return $this->get_diarios(
             \local_suap\aget($_GET, 'username', null),
             \local_suap\aget($_GET, 'semestre', null),
