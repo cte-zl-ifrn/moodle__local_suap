@@ -1,4 +1,5 @@
 <?php
+
 namespace local_suap;
 
 ini_set('display_errors', 1);
@@ -11,11 +12,14 @@ require_once("servicelib.php");
 
 // Link de acesso (exemplo): http://ava/local/suap/api/sync_down_grades.php?codigo_diario=20231.1.15806.1E.TEC.1386
 
-class sync_down_grades_service extends service {
-    
-    function do_call() {
+class sync_down_grades_service extends service
+{
+
+    function do_call()
+    {
         global $CFG, $DB;
-        try {         
+        $notes_to_sync = config('notes_to_sync') ?: "'N1', 'N2', 'N3', 'N4', 'NAF'";
+        try {
             $notas = $DB->get_records_sql("
                 WITH a AS (
                     SELECT  ra.userid                        AS id_usuario,
@@ -35,7 +39,7 @@ class sync_down_grades_service extends service {
                                 SELECT   jsonb_object_agg(gi.idnumber::text, gg.finalgrade)
                                 FROM     {grade_items} gi
                                             inner join {grade_grades} gg on (gg.itemid=gi.id AND gg.userid = a.id_usuario)
-                                WHERE    gi.idnumber IN ('N1', 'N2', 'N3', 'N4', 'N5', 'N6', 'N7', 'N8', 'N9', 'NAF')
+                                WHERE    gi.idnumber IN ($notes_to_sync)
                                 AND    gi.courseid = a.id_curso
                         ) notas
                 FROM     a
@@ -58,5 +62,4 @@ class sync_down_grades_service extends service {
             }
         }
     }
-
 }
