@@ -3,6 +3,8 @@ namespace local_suap;
 
 require_once(\dirname(\dirname(\dirname(__DIR__))) . '/config.php');
 
+require_once($CFG->dirroot . '/backup/util/includes/backup_includes.php');
+require_once($CFG->dirroot . '/backup/util/includes/restore_includes.php');
 require_once($CFG->dirroot . '/course/lib.php');
 require_once($CFG->dirroot . '/user/lib.php');
 require_once($CFG->dirroot . '/cohort/lib.php');
@@ -269,6 +271,66 @@ class sync_up_enrolments_service extends service {
         return $category;
     }
 
+    function get_template(){
+        global $DB;   
+        
+        $template_shortname = $this->isRoom ? config('default_room_tamplate') : config('default_course_tamplate'); 
+        if($DB->record_exists('course', ['shortname'=>$template_shortname])){
+            return $DB->get_record('course', ['shortname'=>$template_shortname]);            
+        }               
+    }
+
+    function backup_template($template) {
+        
+        $settings = array(
+            'activities' => 'backup_auto_activities',
+            'blocks' => 'backup_auto_blocks',
+            // 'users' => 'backup_auto_users',
+            // 'role_assignments' => 'backup_auto_role_assignments',
+            // 'filters' => 'backup_auto_filters',
+            // 'comments' => 'backup_auto_comments',
+            // 'completion_information' => 'backup_auto_userscompletion',
+            // 'logs' => 'backup_auto_logs',
+            // 'histories' => 'backup_auto_histories'
+        );
+
+        $bc = new \backup_controller(\backup::TYPE_1COURSE, $template->id, \backup::FORMAT_MOODLE,
+                                    \backup::INTERACTIVE_NO, \backup::MODE_IMPORT, $this->suapIssuer->id);
+        $backupid = $bc->get_backupid();
+        $bc->get_plan()->get_setting('users')->set_status(\backup_setting::LOCKED_BY_CONFIG);
+        
+        foreach ($settings as $setting => $configsetting) {
+            if ($bc->get_plan()->setting_exists($setting)) {
+                $bc->get_plan()->get_setting($setting)->set_value(get_config('backup')->{$configsetting});
+            }
+        }    
+       
+        $bc->execute_plan();
+        $bc->destroy();
+        unset($bc);
+    
+        return $backupid;
+    }
+    
+    function restore_to_course($courseid, $backupid) {
+        global $CFG;
+        
+        $tempdestination = $CFG->tempdir . '/backup/' . $backupid;
+        if (!file_exists($tempdestination) || !is_dir($tempdestination)) {
+            print_error('unknownbackupexporterror');
+        }
+
+        $rc = new \restore_controller($backupid, $courseid, \backup::INTERACTIVE_NO, 
+                                    \backup::MODE_IMPORT, $this->suapIssuer->id, \backup::TARGET_CURRENT_ADDING);
+        
+        $rc->execute_precheck();
+        $rc->execute_plan();
+        $rc->destroy();
+        unset($rc);	
+        
+        fulldelete($tempdestination);
+    }
+
 
     function sync_course($categoryid){
         global $DB;
@@ -335,6 +397,13 @@ class sync_up_enrolments_service extends service {
                 );
             }
             $this->course = create_course((object)$data);
+
+            //atualiza com template
+            $template = $this->get_template();
+            if(isset($template)){
+                $backupid = $this->backup_template($template);
+                $this->restore_to_course($this->course->id, $backupid);
+            }            
         } elseif (!$this->isRoom) {
             $this->course->idnumber = $course_code_long;
             $this->course->shortname = $course_code_long;

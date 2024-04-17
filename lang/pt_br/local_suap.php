@@ -35,6 +35,13 @@ $string['auth_token_header_desc'] = 'Qual será o token utilizado pelo SUAP para
 $string["auth_token"] = 'SUAP auth token';
 $string["auth_token_desc"] = 'Qual será o token utilizado pelo SUAP para se autenticar nesta instalação do Moodle';
 
+# Room template
+$string['default_room_tamplate_header'] = 'Templates para Salas de Coordenação e Disciplinas';
+$string['default_room_tamplate_header_desc'] = 'Qual será ultilizado como modelo para criar novas salas';
+$string["default_room_tamplate"] = 'Nome curto do template ( veja nas configurações do template )';
+$string["default_room_tamplate_desc"] = 'Qual será ultilizado como modelo para criar salas de coordenação';
+$string["default_course_tamplate"] = 'Nome curto do template ( veja nas configurações do template )';
+$string["default_course_tamplate_desc"] =  'Qual será ultilizado como modelo para criar as disciplinas';
 
 # Top category
 $string['top_category_header'] = 'Categoria principal';

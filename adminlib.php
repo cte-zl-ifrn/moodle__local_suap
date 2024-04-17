@@ -55,6 +55,10 @@ class suap_admin_settingspage extends admin_settingpage
             $this->add_heading('auth_token_header');
             $this->add_configtext("auth_token", 'changeme');
 
+            $this->add_heading('default_room_tamplate_header');
+            $this->add_configtext("default_room_tamplate", 'changeme');
+            $this->add_configtext("default_course_tamplate", 'changeme');
+
             $this->add_heading('top_category_header');
             $this->add_configtext("top_category_idnumber", 'diarios');
             $this->add_configtext("top_category_name", 'Diários');
