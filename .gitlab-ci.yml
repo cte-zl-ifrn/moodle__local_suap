@@ -4,14 +4,3 @@ include:
     ref: "main"
     file:
       - "templates/lms-autodeploy.yml"
-
-
-stages:
-  - sast
-  - build
-  - test
-  - push
-  - deploy
-
-sast:
-  stage: sast
