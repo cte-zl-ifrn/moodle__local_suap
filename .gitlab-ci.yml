@@ -1,6 +1,6 @@
 include:
   - template: "Security/SAST.gitlab-ci.yml"
-  - project: "dead-zl/infra/ci-cd-templates"
+  - project: "dead-zl/ava/lms/ci-cd-templates"
     ref: "main"
     file:
       - "templates/lms-autodeploy.yml"
