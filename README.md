@@ -17,7 +17,6 @@
 
 > ATENÇÃO: Se a chave for alterada manualmente ou por outro plugin a sincronização quebrará. Via de regra, a chave é o `idnumber`. Mas também pode ser o username, como no caso do `user`.
 
-
 Após realizar o fluxo padrão
 
 1. Validar JSON
