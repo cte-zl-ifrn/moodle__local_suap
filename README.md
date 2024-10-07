@@ -296,12 +296,13 @@ Após realizar o fluxo padrão
 
 ### Sincronização das notas
 
-Descrever.
+1. Descrever.
+
 
 
 ### Sincronização das faltas
 
-Descrever.
+1. Descrever.
 
 
 ## Tipo de commits
