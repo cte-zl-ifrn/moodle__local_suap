@@ -296,7 +296,7 @@ Após realizar o fluxo padrão
 
 ### Sincronização das notas
 
-1. Descrever.
+1. Descrever .
 
 
 
