@@ -1,5 +1,6 @@
 # moodle__local_suap
 
+
 ## Fluxo de integração
 
 
@@ -8,7 +9,6 @@
 2. Validar token
 3. Identificar serviço
 4. Executar serviço
-
 
 
 ### Fluxo específico do serviço de sincronização de diários
