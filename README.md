@@ -302,7 +302,7 @@ Após realizar o fluxo padrão
 
 ### Sincronização das faltas
 
-1. Descrever .
+1. Descrever m.
 
 
 ## Tipo de commits
