@@ -11,7 +11,7 @@
 4. Executar serviço
 
 
-### Fluxo específico do serviço de sincronização de diários
+### Sincronização de diários
 
 > Neste fluxo, quando dizemos "sincronizar" significa: 1. caso não exista: crie; 2. caso já exista: atualizar alguns campos. Para saber se já existe é usada uma chave externa vinda do arquivo a ser sincronizado.
 
@@ -257,9 +257,7 @@ Após realizar o fluxo padrão
 4. Retornar URL do Diário e URL da Sala de Coordenação
 
 
-
-### Fluxo específico do serviço de sincronização da sala de coordenação
-
+### Sincronização da sala de coordenação
 
 1. Validar JSON
     1. Sucesso: O JSON veio
@@ -294,6 +292,16 @@ Após realizar o fluxo padrão
             1. Sincronizar usuário
             2. Adicionar colaborador à coorte. *se já existir dará certo?*
 4. Retornar URL do Diário e URL da Sala de Coordenação
+
+
+### Sincronização das notas
+
+Descrever.
+
+
+### Sincronização das faltas
+
+Descrever.
 
 
 ## Tipo de commits
