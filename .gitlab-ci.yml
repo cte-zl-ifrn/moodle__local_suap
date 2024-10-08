@@ -4,5 +4,4 @@ include:
     ref: "main"
     file:
 
-
       - "templates/lms-autodeploy.yml"
