@@ -1,26 +1,23 @@
 # moodle__local_suap
 
-```bash
-git add .
-git commit -m "release 021 - [fix] polo.nome para polo.descricao"
-git push
-git tag 0.2.021
-git push --tags
-```
 
 ## Fluxo de integração
 
+
 ### Fluxo comum a todos os serviços
 1. Recerber requisição
-2. Identificar serviço
-3. Executar serviço
-4. Validar token
+2. Validar token
+3. Identificar serviço
+4. Executar serviço
 
-### Fluxo específico do serviço de sincronização de diários
 
-> Neste fluxo, quando dizemos "sincronizar" significa: 1. não existe, cria; 2. se existe atualiza, alguns campos. Para saber se já existe é usada uma chave externa vinda do arquivo a ser sincronizado.
+### Sincronização de diários
 
-> ATENÇÃO: Se a chave for alterada manualmente ou por outro plugin a sincronização quebrará.
+> Neste fluxo, quando dizemos "sincronizar" significa: 1. caso não exista: crie; 2. caso já exista: atualizar alguns campos. Para saber se já existe é usada uma chave externa vinda do arquivo a ser sincronizado.
+
+> ATENÇÃO: Se a chave for alterada manualmente ou por outro plugin a sincronização quebrará. Via de regra, a chave é o `idnumber`. Mas também pode ser o username, como no caso do `user`.
+
+Após realizar o fluxo padrão
 
 1. Validar JSON
     1. Sucesso: O JSON veio
@@ -260,10 +257,7 @@ git push --tags
 4. Retornar URL do Diário e URL da Sala de Coordenação
 
 
-
-
-
-
+### Sincronização da sala de coordenação
 
 1. Validar JSON
     1. Sucesso: O JSON veio
@@ -298,6 +292,17 @@ git push --tags
             1. Sincronizar usuário
             2. Adicionar colaborador à coorte. *se já existir dará certo?*
 4. Retornar URL do Diário e URL da Sala de Coordenação
+
+
+### Sincronização das notas
+
+1. Descrever mais.
+
+
+
+### Sincronização das faltas
+
+1. Descrever mais....
 
 
 ## Tipo de commits
