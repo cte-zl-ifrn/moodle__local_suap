@@ -91,4 +91,7 @@ $string["default_instructor_enrol_type"] = 'Default enrol_type for a new instruc
 $string["default_instructor_enrol_type_desc"] = 'Normally manual. Why? Because new instructors will be enrolled -manually- on SUAP and synched to Moodle';
 
 $string["sync_up_enrolments_task"] = 'Sync Up Enrolments Task';
-$string["sync_up_enrolments_task"] = 'Sync Up Enrolments Task';
+$string["sync_up_enrolments_task_desc"] = 'Sync Up Enrolments Task';
+
+$string["notes_to_sync"] = 'Notas a sincronizar';
+$string["notes_to_sync_desc"] = 'Notas a sincronizar';
